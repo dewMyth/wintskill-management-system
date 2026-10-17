@@ -7,6 +7,8 @@ import { AttendanceSheetPage } from '@/features/attendance/AttendanceSheetPage';
 import { RequireRole } from '@/features/auth/RequireRole';
 import { CalendarPage } from '@/features/calendar/CalendarPage';
 import { CourseDetailPage } from '@/features/courses/CourseDetailPage';
+import { LmsPage } from '@/features/lms/LmsPage';
+import { ViewerPage } from '@/features/lms/viewer/ViewerPage';
 import { CoursesPage } from '@/features/courses/CoursesPage';
 import { EditStudentPage } from '@/features/students/EditStudentPage';
 import { RegisterStudentPage } from '@/features/students/RegisterStudentPage';
@@ -51,6 +53,8 @@ export const routes: RouteObject[] = [
                   { path: 'students/:id/edit', element: <EditStudentPage /> },
                   { path: 'teachers', element: <TeachersPage /> },
                   { path: 'calendar', element: <CalendarPage /> },
+                  { path: 'materials', element: <LmsPage /> },
+                  { path: 'view/:type/:id', element: <ViewerPage /> },
                   { path: 'attendance', element: <AttendancePage /> },
                   {
                     path: 'attendance/:sessionId',
@@ -64,6 +68,8 @@ export const routes: RouteObject[] = [
                 children: [
                   { index: true, element: <DashboardPage /> },
                   { path: 'calendar', element: <CalendarPage /> },
+                  { path: 'materials', element: <LmsPage /> },
+                  { path: 'view/:type/:id', element: <ViewerPage /> },
                   { path: 'attendance', element: <AttendancePage /> },
                   {
                     path: 'attendance/:sessionId',
@@ -77,6 +83,8 @@ export const routes: RouteObject[] = [
                 children: [
                   { index: true, element: <DashboardPage /> },
                   { path: 'calendar', element: <CalendarPage /> },
+                  { path: 'learn', element: <LmsPage /> },
+                  { path: 'view/:type/:id', element: <ViewerPage /> },
                 ],
               },
             ],

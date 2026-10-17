@@ -194,3 +194,10 @@
   align-items: center;
   min-height: 2.75rem;
 }
+
+/* While a course material is open, printing produces a blank page. */
+@media print {
+  html.protected-viewing body {
+    display: none;
+  }
+}

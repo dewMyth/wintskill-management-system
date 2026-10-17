@@ -8,6 +8,8 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   SUPABASE_URL: z.url(),
   SUPABASE_SECRET_KEY: z.string().min(1),
+  /** Largest course material upload, in MB (the storage bucket enforces the same limit). */
+  MATERIAL_MAX_MB: z.coerce.number().int().positive().default(100),
 });
 
 export type Env = z.infer<typeof envSchema>;

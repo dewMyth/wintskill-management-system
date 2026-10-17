@@ -12,6 +12,7 @@ import {
   type Role,
 } from '../src/generated/prisma/client.js';
 import { createPrismaAdapter } from '../src/prisma/adapter.js';
+import { samplePdf } from './sample-pdf.js';
 
 if (process.env.NODE_ENV === 'production')
   throw new Error('The dev seed must not run in production');
@@ -28,7 +29,23 @@ const supabase = createClient(
   },
 );
 
+/** Empties the materials bucket (folders are course/module/file). */
+async function clearMaterialFiles() {
+  const bucket = supabase.storage.from('materials');
+  for (const course of (await bucket.list()).data ?? []) {
+    for (const module of (await bucket.list(course.name)).data ?? []) {
+      const files =
+        (await bucket.list(`${course.name}/${module.name}`)).data ?? [];
+      if (files.length)
+        await bucket.remove(
+          files.map((f) => `${course.name}/${module.name}/${f.name}`),
+        );
+    }
+  }
+}
+
 async function resetData() {
+  await clearMaterialFiles();
   await prisma.$transaction([
     prisma.materialView.deleteMany(),
     prisma.attendance.deleteMany(),
@@ -308,6 +325,33 @@ await prisma.classSession.createMany({
       venue: 'Training salon',
     })),
 });
+// Course materials: a handout in HSC module 1, plus an assignment.
+const handoutPath = `${hsc.id}/${hsc.modules[0].id}/${crypto.randomUUID()}.pdf`;
+const { error: uploadError } = await supabase.storage
+  .from('materials')
+  .upload(handoutPath, samplePdf('Salon Safety & Hygiene - Week 1'), {
+    contentType: 'application/pdf',
+  });
+if (uploadError) throw uploadError;
+await prisma.material.create({
+  data: {
+    moduleId: hsc.modules[0].id,
+    title: 'Week 1 handout: salon safety',
+    kind: 'PDF',
+    storagePath: handoutPath,
+    uploadedById: teacher.id,
+  },
+});
+await prisma.assignment.create({
+  data: {
+    moduleId: hsc.modules[0].id,
+    title: 'Hygiene checklist',
+    description: 'List ten hygiene checks you do before every client.',
+    dueAt: at(14, '09:00'),
+    uploadedById: teacher.id,
+  },
+});
+
 await prisma.calendarEvent.createMany({
   data: [
     {

@@ -116,13 +116,19 @@ port = 54324
 [storage]
 enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
-file_size_limit = "50MiB"
+file_size_limit = "100MiB"
 
 # Private buckets: files are only reachable through short-lived signed URLs issued by the API.
 [storage.buckets.avatars]
 public = false
 file_size_limit = "2MiB"
 allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
+
+# Course materials and assignment files (PDF, MP4 video, images).
+[storage.buckets.materials]
+public = false
+file_size_limit = "100MiB"
+allowed_mime_types = ["application/pdf", "video/mp4", "image/png", "image/jpeg", "image/webp"]
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]

@@ -15,6 +15,7 @@ import { validateEnv, type Env } from './config/env.js';
 import { CoursesModule } from './courses/courses.module.js';
 import { EnrollmentsModule } from './enrollments/enrollments.module.js';
 import { HealthController } from './health/health.controller.js';
+import { LmsModule } from './lms/lms.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { StudentsModule } from './students/students.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
@@ -39,6 +40,7 @@ import { TeachersModule } from './teachers/teachers.module.js';
     TeachersModule,
     CalendarModule,
     AttendanceModule,
+    LmsModule,
   ],
   controllers: [HealthController],
   providers: [

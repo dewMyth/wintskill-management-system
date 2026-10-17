@@ -174,7 +174,7 @@ Logos: `resources/academy_logo_transparent.png` in the header, sidebar and favic
 
 No website can fully prevent screenshots: the OS, a second phone camera or devtools can always capture the screen. The plan makes copying difficult and traceable:
 
-1. Files live in a private bucket. The API checks enrollment, then returns a **60-second signed URL** for one file.
+1. Files live in a private bucket. Staff upload straight to storage with a one-time token from the API (large videos never pass through the server); the API then checks the file's real type from its bytes. To view, the API checks enrollment and returns a **60-second signed URL** for one file (videos get 2 hours, because they stream in many requests during playback).
 2. PDFs render page by page into `<canvas>` with pdf.js, so there is no download or print button and no file link in the DOM.
 3. Videos use `<video controlsList="nodownload" disablePictureInPicture>` with a signed URL.
 4. Every viewer shows a **visible watermark overlay** with the student's name, the registration number for that course and the date. A leaked screenshot can be traced back to the student who took it.
@@ -297,11 +297,11 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Student LMS: course switcher (one entry per enrollment) → modules → materials and assignments, with "viewed" ticks
 
 **Success criteria**
-- [ ] A student without an enrollment in the course gets 403 on every material endpoint (tested)
-- [ ] A teacher editing or deleting another user's upload → 403 (tested)
-- [ ] The bucket is private: direct storage URLs without a signature return 400/403
-- [ ] Viewer shows the watermark, blocks right-click/print/save shortcuts, and blurs on tab switch (Playwright)
-- [ ] The first time a student opens a material, a `MaterialView` row is created
+- [x] A student without an enrollment in the course gets 403 on every material endpoint (tested)
+- [x] A teacher editing or deleting another user's upload → 403 (tested)
+- [x] The bucket is private: direct storage URLs without a signature return 400/403
+- [x] Viewer shows the watermark, blocks right-click/print/save shortcuts, and blurs on tab switch (Playwright)
+- [x] The first time a student opens a material, a `MaterialView` row is created
 
 ### Phase 8 — Dashboards & progress
 - **Admin:** active batches, enrollments per batch, today's sessions, low-attendance alert (< 80%, set in config)

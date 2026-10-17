@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
+import type { EnrollmentStatus } from '../src/generated/prisma/enums.js';
 import type { PrismaService } from '../src/prisma/prisma.service.js';
 import {
   createTestApp,
@@ -49,7 +50,7 @@ async function addStudent(
   fullName: string,
   batch: string,
   registrationNo: string,
-  status = 'ACTIVE' as const,
+  status: EnrollmentStatus = 'ACTIVE',
 ) {
   const id = randomUUID();
   profileIds.push(id);

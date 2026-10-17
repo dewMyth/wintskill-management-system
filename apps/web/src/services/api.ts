@@ -49,6 +49,7 @@ export const api = createApi({
     'Teacher',
     'Calendar',
     'Attendance',
+    'Lms',
   ],
   endpoints: () => ({}),
 });
