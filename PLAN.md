@@ -274,10 +274,10 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Teacher and student calendars are read-only. A teacher sees their own sessions; a student sees every batch they are actively enrolled in
 
 **Success criteria**
-- [ ] `GET /calendar?from&to&batchId` returns sessions + events in a single call
-- [ ] Students only receive items from their own batches (tested, including a student with two enrollments)
-- [ ] Overlapping teacher assignment returns a warning the UI shows
-- [ ] Calendar usable on a 360px screen (list view default)
+- [x] `GET /calendar?from&to&batchId` returns sessions + events in a single call
+- [x] Students only receive items from their own batches (tested, including a student with two enrollments)
+- [x] Overlapping teacher assignment returns a warning the UI shows
+- [x] Calendar usable on a 360px screen (list view default)
 
 ### Phase 6 — Attendance
 - From a session (calendar or "Today" list), open the attendance sheet: roster of the batch's active enrollments, everyone defaults to **Present**, tap to cycle the status, one save button

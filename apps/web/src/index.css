@@ -142,3 +142,55 @@
     @apply font-heading;
   }
 }
+
+/* FullCalendar in the academy theme */
+.wintskill-calendar {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--card);
+  --fc-neutral-bg-color: var(--muted);
+  --fc-list-event-hover-bg-color: var(--muted);
+  --fc-today-bg-color: color-mix(in oklab, var(--gold) 12%, transparent);
+  --fc-now-indicator-color: var(--destructive);
+  --fc-button-bg-color: var(--card);
+  --fc-button-border-color: var(--border);
+  --fc-button-text-color: var(--foreground);
+  --fc-button-hover-bg-color: var(--muted);
+  --fc-button-hover-border-color: var(--border);
+  --fc-button-active-bg-color: var(--primary);
+  --fc-button-active-border-color: var(--primary);
+  font-size: 0.875rem;
+}
+.wintskill-calendar .fc-button {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  box-shadow: none !important;
+}
+.wintskill-calendar .fc-button-active {
+  color: var(--primary-foreground) !important;
+}
+.wintskill-calendar .fc-toolbar-title {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.wintskill-calendar .fc-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.wintskill-calendar .fc-event {
+  cursor: pointer;
+}
+.wintskill-calendar .fc-list-day-cushion {
+  background: var(--muted);
+}
+.wintskill-calendar a {
+  color: inherit;
+}
+/* List view: the event link fills a 44px row so it is easy to tap */
+.wintskill-calendar .fc-list-event-title a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+}

@@ -21,7 +21,8 @@ export async function expectNoHorizontalScroll(page: Page) {
 
 /**
  * Every visible button, link and input must be at least 44px tall (comfortable to tap).
- * Checkboxes are exempt: their 44px label is the tap target.
+ * Exempt: checkboxes (their 44px label is the tap target) and <a> without href or tabindex
+ * (plain text, e.g. calendar day headings).
  */
 export async function expectTouchTargets(page: Page) {
   const small = await page.evaluate(() =>
@@ -31,6 +32,12 @@ export async function expectTouchTargets(page: Page) {
         (el) =>
           el.getAttribute('role') !== 'checkbox' &&
           el.getAttribute('aria-hidden') !== 'true',
+      )
+      .filter(
+        (el) =>
+          el.tagName !== 'A' ||
+          el.hasAttribute('href') ||
+          el.hasAttribute('tabindex'),
       )
       .map((el) => ({
         el: el.outerHTML.slice(0, 80),

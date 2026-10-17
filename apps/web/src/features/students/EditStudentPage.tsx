@@ -28,7 +28,8 @@ import { useGetStudentQuery, useUpdateStudentMutation } from './students-api';
 export function EditStudentPage() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
-  const { data: student, isLoading, error, refetch } = useGetStudentQuery(id);
+  // currentData: never show the previous record while another one loads.
+  const { currentData: student, error, refetch } = useGetStudentQuery(id);
   const [updateStudent] = useUpdateStudentMutation();
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema),
@@ -47,7 +48,7 @@ export function EditStudentPage() {
       </Link>
     </Button>
   );
-  if (isLoading)
+  if (!student && !error)
     return (
       <>
         {back}

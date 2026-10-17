@@ -25,7 +25,8 @@ test.describe('small phone (360px)', () => {
       await expectNoHorizontalScroll(page);
       await expectTouchTargets(page);
 
-      await page.getByRole('link', { name: 'Account' }).last().click();
+      await page.getByRole('button', { name: 'Open user menu' }).click();
+      await page.getByRole('menuitem', { name: 'Account' }).click();
       await expect(
         page.getByRole('heading', { name: 'Account' }),
       ).toBeVisible();

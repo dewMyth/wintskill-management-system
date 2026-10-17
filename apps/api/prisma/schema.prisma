@@ -214,11 +214,14 @@ model Attendance {
   @@unique([sessionId, enrollmentId])
 }
 
+/// Exams, holidays and other dates. `batchId` null = the whole academy.
+/// All-day events start at local midnight and end at midnight after the last day (exclusive).
 model CalendarEvent {
   id          String    @id @default(uuid(7)) @db.Uuid
   batchId     String?   @db.Uuid
   title       String
   type        EventType
+  allDay      Boolean   @default(false)
   startsAt    DateTime
   endsAt      DateTime
   description String?

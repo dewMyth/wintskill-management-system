@@ -76,7 +76,8 @@ function QualificationTable({
 
 export function StudentDetailPage() {
   const { id } = useParams() as { id: string };
-  const { data: student, isLoading, error, refetch } = useGetStudentQuery(id);
+  // currentData: never show the previous record while another one loads.
+  const { currentData: student, error, refetch } = useGetStudentQuery(id);
   const [uploadPhoto, { isLoading: uploading }] = useUploadPhotoMutation();
   const [updateEnrollment] = useUpdateEnrollmentMutation();
   const [enrolling, setEnrolling] = useState(false);
@@ -88,7 +89,7 @@ export function StudentDetailPage() {
       </Link>
     </Button>
   );
-  if (isLoading)
+  if (!student && !error)
     return (
       <>
         {back}

@@ -33,7 +33,8 @@ import { ActiveBadge } from './StatusBadge';
 export function CourseDetailPage() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
-  const { data: course, isLoading, error, refetch } = useGetCourseQuery(id);
+  // currentData: never show the previous record while another one loads.
+  const { currentData: course, error, refetch } = useGetCourseQuery(id);
   const [updateCourse] = useUpdateCourseMutation();
   const [deleteCourse] = useDeleteCourseMutation();
   const [editing, setEditing] = useState(false);
@@ -47,7 +48,7 @@ export function CourseDetailPage() {
     </Button>
   );
 
-  if (isLoading)
+  if (!course && !error)
     return (
       <>
         {back}

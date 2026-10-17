@@ -108,7 +108,7 @@ async function createCourse(
         },
       },
     },
-    include: { batches: true },
+    include: { batches: true, modules: { orderBy: { sortOrder: 'asc' } } },
   });
 }
 
@@ -143,7 +143,12 @@ async function enroll(
 await resetData();
 
 await createAccount('admin', 'ADMIN', 'Academy Admin', '0784400700');
-await createAccount('teacher', 'TEACHER', 'Nimali Perera', '0771234567');
+const teacher = await createAccount(
+  'teacher',
+  'TEACHER',
+  'Nimali Perera',
+  '0771234567',
+);
 // Has not signed in yet: must replace the (seed) password first.
 await createAccount(
   'newteacher',
@@ -218,6 +223,74 @@ await enroll(kavindi.id, hscBatch.id, 'HSC2026A001');
 await enroll(tharushi.id, hscBatch.id, 'HSC2026A002');
 await enroll(dilini.id, hscBatch.id, 'HSC2026A003');
 await enroll(kavindi.id, btcBatch.id, 'BTC2026A001');
+
+// Calendar for this week and next (Sri Lanka time, +05:30), so calendars are not empty.
+const DAY = 24 * 60 * 60 * 1000;
+const colomboNow = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+const monday = new Date(
+  Date.UTC(
+    colomboNow.getUTCFullYear(),
+    colomboNow.getUTCMonth(),
+    colomboNow.getUTCDate(),
+  ) -
+    ((colomboNow.getUTCDay() + 6) % 7) * DAY,
+);
+const at = (dayOffset: number, time: string) =>
+  new Date(
+    `${new Date(monday.getTime() + dayOffset * DAY).toISOString().slice(0, 10)}T${time}:00+05:30`,
+  );
+
+await prisma.classSession.createMany({
+  data: [0, 7]
+    .flatMap((week) => [
+      {
+        batchId: hscBatch.id,
+        moduleId: hsc.modules[0].id,
+        day: week,
+        from: '09:00',
+        to: '12:00',
+      },
+      {
+        batchId: btcBatch.id,
+        moduleId: btc.modules[0].id,
+        day: week + 1,
+        from: '13:00',
+        to: '16:00',
+      },
+      {
+        batchId: hscBatch.id,
+        moduleId: hsc.modules[1].id,
+        day: week + 2,
+        from: '09:00',
+        to: '12:00',
+      },
+    ])
+    .map(({ day, from, to, ...session }) => ({
+      ...session,
+      teacherId: teacher.id,
+      startsAt: at(day, from),
+      endsAt: at(day, to),
+      venue: 'Training salon',
+    })),
+});
+await prisma.calendarEvent.createMany({
+  data: [
+    {
+      batchId: hscBatch.id,
+      title: 'Module 1 practical exam',
+      type: 'EXAM',
+      startsAt: at(10, '09:00'),
+      endsAt: at(10, '11:00'),
+    },
+    {
+      title: 'Poya holiday',
+      type: 'HOLIDAY',
+      allDay: true,
+      startsAt: at(11, '00:00'),
+      endsAt: at(12, '00:00'),
+    },
+  ],
+});
 
 await prisma.$disconnect();
 console.log(
