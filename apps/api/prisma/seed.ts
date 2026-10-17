@@ -61,6 +61,7 @@ async function createAccount(
   role: Role,
   fullName: string,
   phone: string,
+  mustChangePassword = false,
 ) {
   const { data, error } = await supabase.auth.admin.createUser({
     email: internalEmail(username),
@@ -75,7 +76,7 @@ async function createAccount(
       role,
       fullName,
       phone,
-      mustChangePassword: false,
+      mustChangePassword,
     },
   });
 }
@@ -143,6 +144,14 @@ await resetData();
 
 await createAccount('admin', 'ADMIN', 'Academy Admin', '0784400700');
 await createAccount('teacher', 'TEACHER', 'Nimali Perera', '0771234567');
+// Has not signed in yet: must replace the (seed) password first.
+await createAccount(
+  'newteacher',
+  'TEACHER',
+  'Ruwani Jayawardena',
+  '0775555555',
+  true,
+);
 
 const hsc = await createCourse(
   'HSC',
@@ -212,5 +221,5 @@ await enroll(kavindi.id, btcBatch.id, 'BTC2026A001');
 
 await prisma.$disconnect();
 console.log(
-  `Seeded. Users: admin, teacher, HSC2026A001-003. Password: ${password}`,
+  `Seeded. Users: admin, teacher, newteacher (must change password), HSC2026A001-003. Password: ${password}`,
 );

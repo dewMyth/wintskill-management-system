@@ -165,7 +165,7 @@ Taken from the wintskillacademy.lk stylesheet. Map these to shadcn CSS variables
 | rose-gold | `#d8a48a` | Logo-matching accents |
 | cream | `#fbf8f1` | App background |
 
-Fonts (Google Fonts): **Montserrat** for headings, **Lato** for body text, **Great Vibes** only for the decorative wordmark on the login page, **Noto Sans Sinhala** as a fallback for Sinhala names.
+Fonts (self-hosted via Fontsource, so no third-party requests): **Montserrat** for headings, **Lato** for body text, **Great Vibes** only for the decorative wordmark on the login page, **Noto Sans Sinhala** as a fallback for Sinhala names.
 Logos: `resources/academy_logo_transparent.png` in the header, sidebar and favicon; `academy_logo_default.png` and `about_us_cover.png` on the login screen.
 
 ---
@@ -226,11 +226,11 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Global error boundary + 404 page
 
 **Success criteria**
-- [ ] Login redirects each role to its own dashboard; wrong-role URLs redirect away
-- [ ] A user with `mustChangePassword` can only reach `/change-password` until they change it
-- [ ] Session survives a page reload; logout clears persisted state
-- [ ] No horizontal scroll at 360px width on any page; touch targets ≥ 44px
-- [ ] Vitest: auth slice, `RequireRole`, base-query token refresh
+- [x] Login redirects each role to its own dashboard; wrong-role URLs redirect away
+- [x] A user with `mustChangePassword` can only reach `/change-password` until they change it
+- [x] Session survives a page reload; logout clears persisted state
+- [x] No horizontal scroll at 360px width on any page; touch targets ≥ 44px
+- [x] Vitest: auth slice, `RequireRole`, base-query token refresh
 
 ### Phase 3 — Courses, modules, batches (Admin)
 - CRUD: courses (code, name), modules per course (code, title, order), batches per course
