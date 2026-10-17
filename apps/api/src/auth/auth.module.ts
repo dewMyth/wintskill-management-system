@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet } from 'jose';
 import type { Env } from '../config/env.js';
+import { AccountsModule } from '../accounts/accounts.module.js';
 import { AuthService } from './auth.service.js';
 import { JwtVerifier } from './jwt-verifier.js';
 import { MeController } from './me.controller.js';
 
 @Module({
+  imports: [AccountsModule],
   controllers: [MeController],
   providers: [
     AuthService,

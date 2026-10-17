@@ -13,6 +13,7 @@ import { loggerParams } from './common/logger.js';
 import { UserThrottlerGuard } from './common/user-throttler.guard.js';
 import { validateEnv, type Env } from './config/env.js';
 import { CoursesModule } from './courses/courses.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 import { EnrollmentsModule } from './enrollments/enrollments.module.js';
 import { HealthController } from './health/health.controller.js';
 import { LmsModule } from './lms/lms.module.js';
@@ -41,6 +42,7 @@ import { TeachersModule } from './teachers/teachers.module.js';
     CalendarModule,
     AttendanceModule,
     LmsModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -2,11 +2,12 @@ import { KeyRoundIcon, LogOutIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import { useAppSelector } from '@/app/store';
 import { PageHeader } from '@/components/PageHeader';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLogout } from '@/features/auth/use-logout';
+import { useGetStudentDashboardQuery } from '@/features/dashboard/dashboard-api';
 import { initials } from '@/lib/utils';
 
 const roleLabels = {
@@ -18,6 +19,10 @@ const roleLabels = {
 export function AccountPage() {
   const user = useAppSelector((s) => s.auth.user)!;
   const logout = useLogout();
+  const { data: dashboard } = useGetStudentDashboardQuery(undefined, {
+    skip: user.role !== 'STUDENT',
+  });
+  const registrationNos = dashboard?.courses.map((c) => c.registrationNo) ?? [];
 
   return (
     <>
@@ -26,6 +31,13 @@ export function AccountPage() {
         <CardContent className="flex flex-col gap-6">
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
+              {user.avatarUrl && (
+                <AvatarImage
+                  src={user.avatarUrl}
+                  alt=""
+                  className="object-cover"
+                />
+              )}
               <AvatarFallback className="bg-gold text-xl font-semibold text-[var(--forest-950)]">
                 {initials(user.fullName)}
               </AvatarFallback>
@@ -38,6 +50,12 @@ export function AccountPage() {
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
             <dt className="text-muted-foreground">Username</dt>
             <dd className="font-mono">{user.username}</dd>
+            {registrationNos.length > 0 && (
+              <>
+                <dt className="text-muted-foreground">Registration</dt>
+                <dd className="font-mono">{registrationNos.join(', ')}</dd>
+              </>
+            )}
             {user.phone && (
               <>
                 <dt className="text-muted-foreground">Phone</dt>

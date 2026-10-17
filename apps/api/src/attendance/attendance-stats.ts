@@ -14,16 +14,24 @@ export interface AttendanceStats {
  * and so are classes nobody marked (a forgotten register must not lower a student's figure).
  */
 export function attendanceStats(statuses: AttendanceStatus[]): AttendanceStats {
-  const count = (s: AttendanceStatus) => statuses.filter((x) => x === s).length;
-  const present = count('PRESENT');
-  const late = count('LATE');
-  const absent = count('ABSENT');
+  const counts: Partial<Record<AttendanceStatus, number>> = {};
+  for (const s of statuses) counts[s] = (counts[s] ?? 0) + 1;
+  return statsFromCounts(counts);
+}
+
+/** Same as attendanceStats, from per-status counts (e.g. a database groupBy). */
+export function statsFromCounts({
+  PRESENT: present = 0,
+  LATE: late = 0,
+  ABSENT: absent = 0,
+  EXCUSED: excused = 0,
+}: Partial<Record<AttendanceStatus, number>>): AttendanceStats {
   const counted = present + late + absent;
   return {
     present,
     late,
     absent,
-    excused: count('EXCUSED'),
+    excused,
     percentage: counted
       ? Math.round(((present + late) / counted) * 1000) / 10
       : null,

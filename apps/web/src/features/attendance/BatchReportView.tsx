@@ -9,16 +9,16 @@ import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { downloadFile } from '@/services/api';
 import { useGetBatchReportQuery } from './attendance-api';
-import { LOW_ATTENDANCE, type AttendanceStats } from './types';
+import type { AttendanceStats } from './types';
 
-function Percent({ stats }: { stats: AttendanceStats }) {
+function Percent({ stats, low }: { stats: AttendanceStats; low: number }) {
   if (stats.percentage === null)
     return <span className="text-muted-foreground">—</span>;
   return (
     <span
       className={cn(
         'font-semibold tabular-nums',
-        stats.percentage < LOW_ATTENDANCE && 'text-destructive',
+        stats.percentage < low && 'text-destructive',
       )}
     >
       {stats.percentage}%
@@ -60,7 +60,7 @@ export function BatchReportView({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
           {report.heldSessions} classes held so far. Excused and unmarked
-          classes are not counted; below {LOW_ATTENDANCE}% is shown in red.
+          classes are not counted; below {report.threshold}% is shown in red.
         </p>
         {canExport && (
           <Button
@@ -93,7 +93,10 @@ export function BatchReportView({
               </span>
             ),
           },
-          { header: 'Attendance', cell: (r) => <Percent stats={r.overall} /> },
+          {
+            header: 'Attendance',
+            cell: (r) => <Percent stats={r.overall} low={report.threshold} />,
+          },
           {
             header: 'P / L / A / E',
             cell: (r) => (
@@ -106,7 +109,7 @@ export function BatchReportView({
           ...report.modules.map((m) => ({
             header: m.code,
             cell: (r: (typeof report.rows)[number]) => (
-              <Percent stats={r.byModule[m.id]} />
+              <Percent stats={r.byModule[m.id]} low={report.threshold} />
             ),
           })),
         ]}

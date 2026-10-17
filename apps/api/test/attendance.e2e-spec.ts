@@ -279,6 +279,7 @@ describe('report', () => {
       .get(`/attendance/batches/${batchId}`)
       .expect(200);
     expect(res.body.heldSessions).toBe(2);
+    expect(res.body.threshold).toBe(80);
     expect(res.body.modules.map((m: { code: string }) => m.code)).toEqual([
       'M01',
       'M02',

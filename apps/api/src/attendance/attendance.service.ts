@@ -3,7 +3,9 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { sessionInclude } from '../calendar/sessions.service.js';
+import type { Env } from '../config/env.js';
 import type { Profile } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { attendanceStats } from './attendance-stats.js';
@@ -13,7 +15,14 @@ const RECENT_DAYS = 14;
 
 @Injectable()
 export class AttendanceService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly threshold: number;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    config: ConfigService<Env, true>,
+  ) {
+    this.threshold = config.get('LOW_ATTENDANCE_PERCENT', { infer: true });
+  }
 
   /** Classes from the last two weeks that have started: the ones that may need a register. */
   async recentSessions(user: Profile, batchId?: string) {
@@ -151,6 +160,7 @@ export class AttendanceService {
         course: { id: course.id, code: course.code, name: course.name },
       },
       heldSessions,
+      threshold: this.threshold,
       modules: modules.map(({ id, code, title }) => ({ id, code, title })),
       rows: enrollments.map((e) => ({
         enrollmentId: e.id,

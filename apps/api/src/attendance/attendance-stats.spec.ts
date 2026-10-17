@@ -1,4 +1,4 @@
-import { attendanceStats } from './attendance-stats.js';
+import { attendanceStats, statsFromCounts } from './attendance-stats.js';
 
 describe('attendanceStats', () => {
   it('counts late as attended', () => {
@@ -26,5 +26,13 @@ describe('attendanceStats', () => {
   it('has no percentage when nothing counts', () => {
     expect(attendanceStats([]).percentage).toBeNull();
     expect(attendanceStats(['EXCUSED']).percentage).toBeNull();
+  });
+});
+
+describe('statsFromCounts', () => {
+  it('matches attendanceStats for the same records', () => {
+    expect(statsFromCounts({ PRESENT: 2, LATE: 1, ABSENT: 1 })).toEqual(
+      attendanceStats(['PRESENT', 'LATE', 'ABSENT', 'PRESENT']),
+    );
   });
 });

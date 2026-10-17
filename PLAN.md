@@ -309,8 +309,8 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - **Student:** for each enrollment: next class, attendance %, module progress (materials viewed / total), upcoming assignment due dates. Also a profile page with photo and registration numbers
 
 **Success criteria**
-- [ ] Each dashboard loads with ≤ 3 API calls
-- [ ] All numbers match the seeded data (tested)
+- [x] Each dashboard loads with ≤ 3 API calls
+- [x] All numbers match the seeded data (tested)
 
 ### Phase 9 — Integration testing & hardening
 - Playwright suite against the local Supabase stack + seeded data, in **mobile (Pixel 7)** and **desktop Chrome** projects:

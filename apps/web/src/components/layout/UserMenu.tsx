@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '@/app/store';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -38,6 +38,13 @@ export function UserMenu() {
           aria-label="Open user menu"
         >
           <Avatar className="size-9">
+            {user.avatarUrl && (
+              <AvatarImage
+                src={user.avatarUrl}
+                alt=""
+                className="object-cover"
+              />
+            )}
             <AvatarFallback className="bg-gold text-[var(--forest-950)] font-semibold">
               {initials(user.fullName)}
             </AvatarFallback>

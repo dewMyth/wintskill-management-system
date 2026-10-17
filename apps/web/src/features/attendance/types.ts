@@ -39,6 +39,8 @@ export interface BatchReport {
     course: { id: string; code: string; name: string };
   };
   heldSessions: number;
+  /** Below this percentage attendance is highlighted (server setting). */
+  threshold: number;
   modules: { id: string; code: string; title: string }[];
   rows: {
     enrollmentId: string;
@@ -64,6 +66,3 @@ export const statusLabels: Record<AttendanceStatus, string> = {
   LATE: 'Late',
   EXCUSED: 'Excused',
 };
-
-/** Below this, attendance is highlighted (plan: low-attendance alert at 80%). */
-export const LOW_ATTENDANCE = 80;

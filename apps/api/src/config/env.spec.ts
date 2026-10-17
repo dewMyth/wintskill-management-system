@@ -13,6 +13,7 @@ describe('validateEnv', () => {
       NODE_ENV: 'development',
       PORT: 3000,
       MATERIAL_MAX_MB: 100,
+      LOW_ATTENDANCE_PERCENT: 80,
     });
   });
 

@@ -10,6 +10,8 @@ const envSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1),
   /** Largest course material upload, in MB (the storage bucket enforces the same limit). */
   MATERIAL_MAX_MB: z.coerce.number().int().positive().default(100),
+  /** Attendance below this percentage is flagged on the admin dashboard. */
+  LOW_ATTENDANCE_PERCENT: z.coerce.number().min(0).max(100).default(80),
 });
 
 export type Env = z.infer<typeof envSchema>;

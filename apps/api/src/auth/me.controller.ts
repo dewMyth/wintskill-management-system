@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Headers, HttpCode, Post } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Profile } from '../generated/prisma/client.js';
+import { AccountsService } from '../accounts/accounts.service.js';
 import { AuthService } from './auth.service.js';
 import { ChangePasswordDto } from './change-password.dto.js';
 import { AllowPendingPasswordChange, CurrentUser } from './decorators.js';
@@ -8,11 +9,18 @@ import { AllowPendingPasswordChange, CurrentUser } from './decorators.js';
 @Controller('me')
 @AllowPendingPasswordChange()
 export class MeController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly accounts: AccountsService,
+  ) {}
 
+  /** The signed-in profile, with a short-lived link to its photo. */
   @Get()
-  me(@CurrentUser() user: Profile) {
-    return user;
+  async me(@CurrentUser() user: Profile) {
+    return {
+      ...user,
+      avatarUrl: await this.accounts.photoUrl(user.avatarPath),
+    };
   }
 
   @Post('password')

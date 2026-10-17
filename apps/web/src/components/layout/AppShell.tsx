@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useMeQuery } from '@/features/auth/auth-api';
 import { sidebarToggled } from '@/features/ui/ui-slice';
 import { cn } from '@/lib/utils';
 import { navItems } from './nav';
@@ -25,6 +26,8 @@ export function AppShell() {
   const role = useAppSelector((s) => s.auth.user!.role);
   const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
   const dispatch = useAppDispatch();
+  // Refresh the profile once per visit: new photo link, and sign-out if the account was deactivated.
+  useMeQuery();
   const items = navItems[role];
   // Phones show at most 5 tabs; the rest go under "More".
   const tabs = items.length > 5 ? items.slice(0, 4) : items;

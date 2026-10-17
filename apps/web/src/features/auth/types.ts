@@ -10,6 +10,8 @@ export interface Profile {
   avatarPath: string | null;
   isActive: boolean;
   mustChangePassword: boolean;
+  /** Short-lived link to the profile photo (from GET /me). */
+  avatarUrl?: string | null;
 }
 
 const homePaths: Record<Role, string> = {
