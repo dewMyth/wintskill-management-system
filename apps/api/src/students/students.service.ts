@@ -115,6 +115,7 @@ export class StudentsService {
           });
           return {
             studentId: student.id,
+            profileId: student.profileId,
             registrationNo,
             username: registrationNo,
             temporaryPassword: login.temporaryPassword,

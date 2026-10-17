@@ -1,7 +1,9 @@
 import {
   BookOpenIcon,
+  GraduationCapIcon,
   LayoutDashboardIcon,
   UserRoundIcon,
+  UsersIcon,
   type LucideIcon,
 } from 'lucide-react';
 import type { Role } from '@/features/auth/types';
@@ -18,7 +20,9 @@ export interface NavItem {
 export const navItems: Record<Role, NavItem[]> = {
   ADMIN: [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboardIcon, end: true },
+    { to: '/admin/students', label: 'Students', icon: UsersIcon },
     { to: '/admin/courses', label: 'Courses', icon: BookOpenIcon },
+    { to: '/admin/teachers', label: 'Teachers', icon: GraduationCapIcon },
     { to: '/account', label: 'Account', icon: UserRoundIcon },
   ],
   TEACHER: [

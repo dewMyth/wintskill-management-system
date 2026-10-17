@@ -32,6 +32,10 @@ export interface Batch {
   enrollmentCount: number;
 }
 
+export interface BatchWithCourse extends Omit<Batch, 'enrollmentCount'> {
+  course: Pick<Course, 'id' | 'code' | 'name' | 'isActive'>;
+}
+
 export interface CourseDetail extends Course {
   modules: CourseModule[];
   batches: Batch[];

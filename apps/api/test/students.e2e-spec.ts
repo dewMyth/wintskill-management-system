@@ -126,6 +126,7 @@ describe('registration', () => {
     expect(first.body.registrationNo).toBe(`${course.code}2026A001`);
     expect(second.body.registrationNo).toBe(`${course.code}2026A002`);
     expect(first.body.username).toBe(first.body.registrationNo);
+    expect(first.body.profileId).toMatch(/^[0-9a-f-]{36}$/);
     expect(first.body.temporaryPassword).toMatch(/^\w{12}$/);
 
     // Logs in with the number in any case, and must change the temporary password first.

@@ -30,7 +30,7 @@ wintskill-sms/
 | Authorization | `role` on `Profile` table (ADMIN / TEACHER / STUDENT), Nest `RolesGuard` | Roles live in our DB, not in the client |
 | Validation | `class-validator` DTOs + global `ValidationPipe` (whitelist, forbidNonWhitelisted) | Nest idiom |
 | Logging | `nestjs-pino` (JSON logs, request id, redacts auth headers / PII) | Structured, fast |
-| Security middleware | `helmet`, `@nestjs/throttler`; no CORS: Vite proxies `/api` in dev, same origin in production | Standard hardening, fewer moving parts |
+| Security middleware | `helmet`, `@nestjs/throttler` counted per signed-in user (per IP only before sign-in); no CORS: Vite proxies `/api` in dev, same origin in production | Standard hardening; the academy Wi-Fi shares one public IP |
 | Storage | Supabase Storage, **private** buckets only; API issues short-lived signed URLs | Files never public |
 | Frontend | React 19 + Vite, React Router, TypeScript | Required |
 | State | Redux Toolkit + RTK Query; `redux-persist` only for `auth` + UI prefs | Required; RTK Query avoids hand-written fetch state |
@@ -257,14 +257,14 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - **Teachers**: admin creates them (username, name, phone, optional email, photo; username + temporary password shown once), edits, deactivates and resets their passwords
 
 **Success criteria**
-- [ ] First enrollment in HSC/2026A gets `HSC2026A001`, second `HSC2026A002`; 20 parallel enrollments produce 20 unique, gap-free numbers (test)
-- [ ] Generator swapped via provider in a unit test without touching `EnrollmentsService`
-- [ ] Same NIC cannot create a second student; same student cannot enroll twice in one batch (409)
-- [ ] A returning student enrolled in a second course gets a new number and keeps the same login (their first number)
-- [ ] New student logs in with their registration number (any letter case) and the temporary password, is forced to change it, then reaches their dashboard; same for a teacher with their username
-- [ ] Usernames are unique; a teacher username shaped like a registration number is rejected
-- [ ] Registering a student without an email works
-- [ ] A failed registration leaves no orphan auth user or DB rows
+- [x] First enrollment in HSC/2026A gets `HSC2026A001`, second `HSC2026A002`; 20 parallel enrollments produce 20 unique, gap-free numbers (test)
+- [x] Generator swapped via provider in a unit test without touching `EnrollmentsService`
+- [x] Same NIC cannot create a second student; same student cannot enroll twice in one batch (409)
+- [x] A returning student enrolled in a second course gets a new number and keeps the same login (their first number)
+- [x] New student logs in with their registration number (any letter case) and the temporary password, is forced to change it, then reaches their dashboard; same for a teacher with their username
+- [x] Usernames are unique; a teacher username shaped like a registration number is rejected
+- [x] Registering a student without an email works
+- [x] A failed registration leaves no orphan auth user or DB rows
 
 ### Phase 5 — Calendar & class sessions
 - Admin calendar (FullCalendar): month/week/list views, filter by batch; tap a date to add a class session (batch, module, teacher, time, venue) or an event (exam/holiday/other)

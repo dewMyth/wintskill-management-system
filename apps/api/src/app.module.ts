@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthGuard } from './auth/auth.guard.js';
 import { AccountsModule } from './accounts/accounts.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { RolesGuard } from './auth/roles.guard.js';
 import { loggerParams } from './common/logger.js';
+import { UserThrottlerGuard } from './common/user-throttler.guard.js';
 import { validateEnv, type Env } from './config/env.js';
 import { CoursesModule } from './courses/courses.module.js';
 import { EnrollmentsModule } from './enrollments/enrollments.module.js';
@@ -37,9 +38,9 @@ import { TeachersModule } from './teachers/teachers.module.js';
   ],
   controllers: [HealthController],
   providers: [
-    // Order matters: rate limit, then authenticate, then check roles.
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Order matters: authenticate (so limits can be per user), then rate limit, then check roles.
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })

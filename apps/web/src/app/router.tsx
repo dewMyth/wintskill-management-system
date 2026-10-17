@@ -5,6 +5,11 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireRole } from '@/features/auth/RequireRole';
 import { CourseDetailPage } from '@/features/courses/CourseDetailPage';
 import { CoursesPage } from '@/features/courses/CoursesPage';
+import { EditStudentPage } from '@/features/students/EditStudentPage';
+import { RegisterStudentPage } from '@/features/students/RegisterStudentPage';
+import { StudentDetailPage } from '@/features/students/StudentDetailPage';
+import { StudentsPage } from '@/features/students/StudentsPage';
+import { TeachersPage } from '@/features/teachers/TeachersPage';
 import { HomeRedirect } from '@/features/auth/HomeRedirect';
 import { AccountPage } from '@/pages/AccountPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -37,6 +42,11 @@ export const routes: RouteObject[] = [
                   { index: true, element: <DashboardPage /> },
                   { path: 'courses', element: <CoursesPage /> },
                   { path: 'courses/:id', element: <CourseDetailPage /> },
+                  { path: 'students', element: <StudentsPage /> },
+                  { path: 'students/new', element: <RegisterStudentPage /> },
+                  { path: 'students/:id', element: <StudentDetailPage /> },
+                  { path: 'students/:id/edit', element: <EditStudentPage /> },
+                  { path: 'teachers', element: <TeachersPage /> },
                 ],
               },
               {

@@ -2,6 +2,7 @@ import { api } from '@/services/api';
 import type {
   Batch,
   BatchStatus,
+  BatchWithCourse,
   Course,
   CourseDetail,
   CourseListItem,
@@ -13,6 +14,7 @@ type ModuleInput = { code: string; title: string };
 type BatchInput = { name?: string; startDate: string; endDate?: string | null };
 
 const listTag = { type: 'Course' as const, id: 'LIST' };
+const batchesTag = { type: 'Batch' as const, id: 'LIST' };
 const courseTag = (id: string) => ({ type: 'Course' as const, id });
 
 export const coursesApi = api.injectEndpoints({
@@ -20,6 +22,10 @@ export const coursesApi = api.injectEndpoints({
     getCourses: build.query<CourseListItem[], void>({
       query: () => 'courses',
       providesTags: [listTag],
+    }),
+    getBatches: build.query<BatchWithCourse[], void>({
+      query: () => 'batches',
+      providesTags: [batchesTag],
     }),
     getCourse: build.query<CourseDetail, string>({
       query: (id) => `courses/${id}`,
@@ -38,7 +44,7 @@ export const coursesApi = api.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: (_r, _e, { id }) => [listTag, courseTag(id)],
+      invalidatesTags: (_r, _e, { id }) => [listTag, courseTag(id), batchesTag],
     }),
     deleteCourse: build.mutation<void, string>({
       query: (id) => ({ url: `courses/${id}`, method: 'DELETE' }),
@@ -92,7 +98,11 @@ export const coursesApi = api.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (_r, _e, { courseId }) => [listTag, courseTag(courseId)],
+      invalidatesTags: (_r, _e, { courseId }) => [
+        listTag,
+        courseTag(courseId),
+        batchesTag,
+      ],
     }),
     updateBatch: build.mutation<
       Batch,
@@ -105,17 +115,25 @@ export const coursesApi = api.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: (_r, _e, { courseId }) => [courseTag(courseId)],
+      invalidatesTags: (_r, _e, { courseId }) => [
+        courseTag(courseId),
+        batchesTag,
+      ],
     }),
     deleteBatch: build.mutation<void, { courseId: string; id: string }>({
       query: ({ id }) => ({ url: `batches/${id}`, method: 'DELETE' }),
-      invalidatesTags: (_r, _e, { courseId }) => [listTag, courseTag(courseId)],
+      invalidatesTags: (_r, _e, { courseId }) => [
+        listTag,
+        courseTag(courseId),
+        batchesTag,
+      ],
     }),
   }),
 });
 
 export const {
   useGetCoursesQuery,
+  useGetBatchesQuery,
   useGetCourseQuery,
   useCreateCourseMutation,
   useUpdateCourseMutation,

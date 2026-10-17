@@ -77,10 +77,15 @@ test.describe('session', () => {
     await page.getByRole('menuitem', { name: 'Log out' }).click();
     await expect(page).toHaveURL('/login');
 
-    const stored = await page.evaluate(() =>
-      localStorage.getItem('persist:wintskill'),
-    );
-    expect(JSON.parse(JSON.parse(stored!).auth)).toEqual({ user: null });
+    // Persisted state is written asynchronously, so wait for it.
+    await expect
+      .poll(async () => {
+        const stored = await page.evaluate(() =>
+          localStorage.getItem('persist:wintskill'),
+        );
+        return JSON.parse(JSON.parse(stored!).auth);
+      })
+      .toEqual({ user: null });
     await page.goto('/admin');
     await expect(page).toHaveURL('/login');
   });
@@ -114,6 +119,7 @@ test('a user with a temporary password must change it first', async ({
 
   await page.getByRole('button', { name: 'Open user menu' }).click();
   await page.getByRole('menuitem', { name: 'Log out' }).click();
+  await expect(page).toHaveURL('/login');
   await login(page, 'newteacher', 'MyOwnPassword1');
   await expect(page).toHaveURL('/teacher');
 });
