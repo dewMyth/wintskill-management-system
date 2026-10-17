@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -5,6 +6,8 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.e2e-spec.ts'],
+    include: ['test/**/*.e2e-spec.ts'],
+    testTimeout: 20_000,
+    env: { NODE_ENV: 'test' },
   },
 });

@@ -46,14 +46,14 @@ All secrets come from environment variables (`.env`, never committed; `.env.exam
 
 ```
 # apps/api/.env
-DATABASE_URL=            # Supabase pooled connection
-DIRECT_URL=              # Supabase direct connection (migrations)
+DATABASE_URL=            # Supabase pooled connection, ending in ?schema=app
+DIRECT_URL=              # Supabase direct connection (migrations), ending in ?schema=app
 SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=   # API only, never shipped to the browser
+SUPABASE_SECRET_KEY=     # sb_secret_..., API only, never shipped to the browser
 
 # apps/web/.env  (build-time)
 VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+VITE_SUPABASE_PUBLISHABLE_KEY=   # sb_publishable_...
 VITE_API_URL=/api/v1     # same in dev (Vite proxy) and production
 ```
 
@@ -123,7 +123,7 @@ How the admission form maps to the model:
 | Photo box | `Profile.avatarPath` |
 | O/L and A/L: Year, Index, Subject, Result | `Qualification` (one row per level) |
 
-Row Level Security is enabled with **no policies** on all tables (deny-all for the anon key). All data access goes through the API using the service role.
+All tables live in a private `app` schema (`?schema=app` in the connection strings). Supabase's Data API only exposes `public`, so the publishable key cannot reach any table; all data access goes through the API.
 
 ### Registration number generation (pluggable)
 
@@ -204,16 +204,16 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - `PrismaModule`, full schema from §3, first migration, `seed` script (1 admin, 1 teacher, 1 course with 3 modules, 1 batch, 3 students, one of them enrolled in two courses)
 - `AuthGuard` (global): verifies the Supabase JWT against JWKS, loads the `Profile`, rejects inactive users and enforces `mustChangePassword`; `@Public()` opt-out
 - `RolesGuard` + `@Roles()` decorator; `@CurrentUser()` param decorator
-- `GET /me`, `POST /me/password` (sets the new password through the admin API and clears the flag)
+- `GET /me`, `POST /me/password` (checks the current password, sets the new one through the admin API, clears the flag and signs out other sessions)
 - Global `ValidationPipe`, exception filter (consistent `{ statusCode, message, requestId }`, no stack traces in production)
 - `nestjs-pino`, `helmet`, throttler
 - `GET /health`
 
 **Success criteria**
-- [ ] Unit tests: guards (missing/invalid/expired token → 401, wrong role → 403, inactive → 401, password change pending → 403 except allowed routes), exception filter shape, config validation
-- [ ] Unknown DTO fields rejected with 400
-- [ ] Logs are JSON with a request id and never contain `Authorization` headers or passwords
-- [ ] Migration applies cleanly to an empty Supabase DB; seed runs without errors
+- [x] Unit tests: guards (missing/invalid/expired token → 401, wrong role → 403, inactive → 401, password change pending → 403 except allowed routes), exception filter shape, config validation
+- [x] Unknown DTO fields rejected with 400
+- [x] Logs are JSON with a request id and never contain `Authorization` headers or passwords
+- [x] Migration applies cleanly to an empty Supabase DB; seed runs without errors
 
 ### Phase 2 — Frontend foundation
 - Tailwind v4 + shadcn/ui init, theme tokens and fonts from §4

@@ -22,3 +22,6 @@ supabase/.branches/
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# Prisma client (generated on install)
+apps/api/src/generated/

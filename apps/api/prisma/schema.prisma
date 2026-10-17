@@ -1,0 +1,270 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+// Tables live in the `app` schema (see ?schema=app in DATABASE_URL), which the
+// Supabase Data API does not expose. Only this API can read or write them.
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum BatchStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  WITHDRAWN
+}
+
+enum QualificationLevel {
+  OL
+  AL
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum EventType {
+  EXAM
+  HOLIDAY
+  OTHER
+}
+
+enum MaterialKind {
+  PDF
+  VIDEO
+  IMAGE
+}
+
+/// One row per login. `id` is the Supabase auth user id.
+model Profile {
+  id                 String   @id @db.Uuid
+  role               Role
+  username           String   @unique
+  fullName           String
+  email              String?
+  phone              String?
+  avatarPath         String?
+  isActive           Boolean  @default(true)
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  student          Student?
+  sessionsTaught   ClassSession[]
+  attendanceMarked Attendance[]
+  materials        Material[]
+  assignments      Assignment[]
+}
+
+model Course {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  code        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  modules Module[]
+  batches Batch[]
+}
+
+model Module {
+  id        String @id @default(uuid(7)) @db.Uuid
+  courseId  String @db.Uuid
+  code      String
+  title     String
+  sortOrder Int    @default(0)
+
+  course      Course         @relation(fields: [courseId], references: [id])
+  materials   Material[]
+  assignments Assignment[]
+  sessions    ClassSession[]
+
+  @@unique([courseId, code])
+}
+
+model Batch {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  courseId  String      @db.Uuid
+  code      String
+  name      String
+  startDate DateTime    @db.Date
+  endDate   DateTime?   @db.Date
+  status    BatchStatus @default(PLANNED)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  course      Course          @relation(fields: [courseId], references: [id])
+  counter     BatchCounter?
+  enrollments Enrollment[]
+  sessions    ClassSession[]
+  events      CalendarEvent[]
+
+  @@unique([courseId, code])
+}
+
+/// Last registration sequence number issued for a batch.
+model BatchCounter {
+  batchId String @id @db.Uuid
+  lastSeq Int    @default(0)
+
+  batch Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+}
+
+model Student {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  profileId        String   @unique @db.Uuid
+  nameWithInitials String
+  nicOrPassport    String   @unique
+  dateOfBirth      DateTime @db.Date
+  address          String
+  schoolAttended   String?
+  landPhone        String?
+  guardianName     String?
+  guardianPhone    String?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  profile        Profile         @relation(fields: [profileId], references: [id])
+  qualifications Qualification[]
+  enrollments    Enrollment[]
+  materialViews  MaterialView[]
+}
+
+/// O/L or A/L results. `subjects` is [{ subject, result }].
+model Qualification {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  studentId String             @db.Uuid
+  level     QualificationLevel
+  year      Int
+  indexNo   String?
+  subjects  Json
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, level])
+}
+
+model Enrollment {
+  id             String           @id @default(uuid(7)) @db.Uuid
+  studentId      String           @db.Uuid
+  batchId        String           @db.Uuid
+  registrationNo String           @unique
+  status         EnrollmentStatus @default(ACTIVE)
+  enrolledAt     DateTime         @default(now())
+
+  student    Student      @relation(fields: [studentId], references: [id])
+  batch      Batch        @relation(fields: [batchId], references: [id])
+  attendance Attendance[]
+
+  @@unique([studentId, batchId])
+}
+
+model ClassSession {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  batchId   String   @db.Uuid
+  moduleId  String?  @db.Uuid
+  teacherId String   @db.Uuid
+  startsAt  DateTime
+  endsAt    DateTime
+  venue     String?
+  notes     String?
+
+  batch      Batch        @relation(fields: [batchId], references: [id])
+  module     Module?      @relation(fields: [moduleId], references: [id])
+  teacher    Profile      @relation(fields: [teacherId], references: [id])
+  attendance Attendance[]
+
+  @@index([batchId, startsAt])
+  @@index([teacherId, startsAt])
+}
+
+model Attendance {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  sessionId    String           @db.Uuid
+  enrollmentId String           @db.Uuid
+  status       AttendanceStatus
+  markedById   String           @db.Uuid
+  markedAt     DateTime         @default(now()) @updatedAt
+
+  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  enrollment Enrollment   @relation(fields: [enrollmentId], references: [id])
+  markedBy   Profile      @relation(fields: [markedById], references: [id])
+
+  @@unique([sessionId, enrollmentId])
+}
+
+model CalendarEvent {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  batchId     String?   @db.Uuid
+  title       String
+  type        EventType
+  startsAt    DateTime
+  endsAt      DateTime
+  description String?
+
+  batch Batch? @relation(fields: [batchId], references: [id])
+
+  @@index([startsAt])
+}
+
+model Material {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  moduleId     String       @db.Uuid
+  title        String
+  kind         MaterialKind
+  storagePath  String
+  sortOrder    Int          @default(0)
+  uploadedById String       @db.Uuid
+  createdAt    DateTime     @default(now())
+
+  module     Module         @relation(fields: [moduleId], references: [id])
+  uploadedBy Profile        @relation(fields: [uploadedById], references: [id])
+  views      MaterialView[]
+}
+
+/// Read-only handout for students (no submissions yet).
+model Assignment {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  moduleId     String    @db.Uuid
+  title        String
+  description  String?
+  dueAt        DateTime?
+  storagePath  String?
+  uploadedById String    @db.Uuid
+  createdAt    DateTime  @default(now())
+
+  module     Module  @relation(fields: [moduleId], references: [id])
+  uploadedBy Profile @relation(fields: [uploadedById], references: [id])
+}
+
+model MaterialView {
+  studentId     String   @db.Uuid
+  materialId    String   @db.Uuid
+  firstViewedAt DateTime @default(now())
+
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, materialId])
+}

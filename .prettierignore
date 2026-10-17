@@ -6,3 +6,4 @@ e2e/test-results
 supabase
 resources
 *.md
+apps/api/src/generated

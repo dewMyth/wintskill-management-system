@@ -13,8 +13,12 @@ pnpm install
 pnpm supabase start            # prints local URLs and keys
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env   # fill in keys from the previous step
+pnpm --filter api db:migrate
+pnpm --filter api db:seed
 pnpm --filter e2e exec playwright install chromium   # first time only
 ```
+
+Seed logins (password `Password123!`): `admin`, `teacher`, students `HSC2026A001`–`HSC2026A003`.
 
 ## Commands
 
@@ -24,4 +28,7 @@ pnpm --filter e2e exec playwright install chromium   # first time only
 | `pnpm build` | Build both apps |
 | `pnpm lint` / `pnpm format` | oxlint / Prettier |
 | `pnpm test` | Unit tests (Vitest) |
-| `pnpm test:e2e` | Playwright, mobile + desktop |
+| `pnpm test:e2e` | API e2e (needs local Supabase) + Playwright, mobile + desktop |
+| `pnpm --filter api db:migrate` | Create/apply Prisma migrations |
+| `pnpm --filter api db:seed` | Replace local data with the seed |
+| `pnpm --filter api db:reset` | Drop and recreate the local database, then seed |
