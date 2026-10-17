@@ -45,6 +45,10 @@ describe('toErrorBody', () => {
     expect(toErrorBody(prismaError('P2002')).statusCode).toBe(409);
   });
 
+  it('maps foreign key violations (record in use) to 409', () => {
+    expect(toErrorBody(prismaError('P2003')).statusCode).toBe(409);
+  });
+
   it('maps missing records to 404', () => {
     expect(toErrorBody(prismaError('P2025')).statusCode).toBe(404);
   });

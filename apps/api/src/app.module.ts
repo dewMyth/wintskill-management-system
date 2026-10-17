@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { RolesGuard } from './auth/roles.guard.js';
 import { loggerParams } from './common/logger.js';
 import { validateEnv, type Env } from './config/env.js';
+import { CoursesModule } from './courses/courses.module.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
@@ -24,6 +25,7 @@ import { SupabaseModule } from './supabase/supabase.module.js';
     PrismaModule,
     SupabaseModule,
     AuthModule,
+    CoursesModule,
   ],
   controllers: [HealthController],
   providers: [

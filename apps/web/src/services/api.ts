@@ -41,7 +41,7 @@ export const baseQueryWithReauth: BaseQueryFn<
 
 export const api = createApi({
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Me'],
+  tagTypes: ['Me', 'Course'],
   endpoints: () => ({}),
 });
 

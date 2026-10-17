@@ -238,10 +238,10 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Soft-deactivate instead of delete when a course or batch has dependants
 
 **Success criteria**
-- [ ] Course codes are unique; module codes and batch codes are unique per course (DB constraint + friendly 409 message)
-- [ ] Batch code must match `^\d{4}[A-Z]$`; suggested next code is unit tested
-- [ ] Non-admin calls return 403 (tested)
-- [ ] Unit tests on services; UI works at 360px
+- [x] Course codes are unique; module codes and batch codes are unique per course (DB constraint + friendly 409 message)
+- [x] Batch code must match `^\d{4}[A-Z]$`; suggested next code is unit tested
+- [x] Non-admin calls return 403 (tested)
+- [x] Service behaviour covered by API tests against the database (pure logic unit tested); UI works at 360px
 
 ### Phase 4 — Students, enrollments, teacher accounts
 - **Registration wizard** that mirrors the admission form, one step per screen on mobile:

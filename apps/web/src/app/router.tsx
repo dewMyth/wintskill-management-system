@@ -3,6 +3,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireRole } from '@/features/auth/RequireRole';
+import { CourseDetailPage } from '@/features/courses/CourseDetailPage';
+import { CoursesPage } from '@/features/courses/CoursesPage';
 import { HomeRedirect } from '@/features/auth/HomeRedirect';
 import { AccountPage } from '@/pages/AccountPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -31,7 +33,11 @@ export const routes: RouteObject[] = [
               {
                 path: 'admin',
                 element: <RequireRole role="ADMIN" />,
-                children: [{ index: true, element: <DashboardPage /> }],
+                children: [
+                  { index: true, element: <DashboardPage /> },
+                  { path: 'courses', element: <CoursesPage /> },
+                  { path: 'courses/:id', element: <CourseDetailPage /> },
+                ],
               },
               {
                 path: 'teacher',

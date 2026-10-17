@@ -49,6 +49,12 @@ export function toErrorBody(exception: unknown): ErrorBody {
         message: 'A record with these details already exists',
       };
     }
+    if (exception.code === 'P2003') {
+      return {
+        statusCode: 409,
+        message: 'This record is still in use and cannot be deleted',
+      };
+    }
     if (exception.code === 'P2025')
       return { statusCode: 404, message: 'Not found' };
   }

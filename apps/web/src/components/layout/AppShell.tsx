@@ -37,11 +37,11 @@ export function AppShell() {
           )}
         </div>
         <nav aria-label="Main" className="flex flex-1 flex-col gap-1 p-3">
-          {items.map(({ to, label, icon: Icon }) => (
+          {items.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
-              end
+              end={end}
               title={collapsed ? label : undefined}
               className={({ isActive }) =>
                 cn(
@@ -95,11 +95,11 @@ export function AppShell() {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-30 flex border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
       >
-        {items.map(({ to, label, icon: Icon }) => (
+        {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
-            end
+            end={end}
             className={({ isActive }) =>
               cn(
                 'flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground',
