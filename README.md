@@ -11,6 +11,7 @@ Node 24+, pnpm (`corepack enable pnpm`), Docker (for the local Supabase stack).
 ```sh
 pnpm install
 pnpm supabase start            # prints local URLs and keys
+pnpm supabase seed buckets     # creates the private storage buckets
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env   # fill in keys from the previous step
 pnpm --filter api db:migrate

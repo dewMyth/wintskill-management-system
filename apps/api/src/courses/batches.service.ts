@@ -19,6 +19,17 @@ function assertDateOrder(start: Date, end: Date | null | undefined) {
 export class BatchesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  findAll() {
+    return this.prisma.batch.findMany({
+      orderBy: [{ course: { code: 'asc' } }, { startDate: 'desc' }],
+      include: {
+        course: {
+          select: { id: true, code: true, name: true, isActive: true },
+        },
+      },
+    });
+  }
+
   /** Starts a new intake. Its counter issues the registration numbers. */
   async create(courseId: string, dto: CreateBatchDto) {
     const course = await this.prisma.course.findUniqueOrThrow({

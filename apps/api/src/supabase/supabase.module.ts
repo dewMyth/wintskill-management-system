@@ -7,11 +7,21 @@ import type { Env } from '../config/env.js';
 export const SUPABASE = Symbol('SUPABASE');
 export type Supabase = SupabaseClient;
 
+/** No Supabase call may hang: registration holds the intake's number counter while it waits. */
+const REQUEST_TIMEOUT_MS = 10_000;
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+};
+
 export function createServerClient(config: ConfigService<Env, true>): Supabase {
   return createClient(
     config.get('SUPABASE_URL', { infer: true }),
     config.get('SUPABASE_SECRET_KEY', { infer: true }),
-    { auth: { autoRefreshToken: false, persistSession: false } },
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { fetch: fetchWithTimeout },
+    },
   );
 }
 

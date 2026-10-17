@@ -92,6 +92,12 @@ export class CoursesController {
     return this.courses.removeModule(moduleId);
   }
 
+  @Get('batches')
+  @Roles('ADMIN', 'TEACHER')
+  findAllBatches() {
+    return this.batches.findAll();
+  }
+
   @Post('courses/:id/batches')
   createBatch(@Param('id', id) courseId: string, @Body() dto: CreateBatchDto) {
     return this.batches.create(courseId, dto);

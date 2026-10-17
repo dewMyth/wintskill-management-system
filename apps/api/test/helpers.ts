@@ -23,7 +23,8 @@ export async function createTestApp() {
     logger: false,
   });
   configureApp(app);
-  await app.init();
+  // A listening server lets supertest reuse it instead of opening one per request.
+  await app.listen(0);
   return {
     app,
     server: app.getHttpServer() as App,

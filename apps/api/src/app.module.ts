@@ -4,14 +4,18 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthGuard } from './auth/auth.guard.js';
+import { AccountsModule } from './accounts/accounts.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { RolesGuard } from './auth/roles.guard.js';
 import { loggerParams } from './common/logger.js';
 import { validateEnv, type Env } from './config/env.js';
 import { CoursesModule } from './courses/courses.module.js';
+import { EnrollmentsModule } from './enrollments/enrollments.module.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { StudentsModule } from './students/students.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
+import { TeachersModule } from './teachers/teachers.module.js';
 
 @Module({
   imports: [
@@ -26,6 +30,10 @@ import { SupabaseModule } from './supabase/supabase.module.js';
     SupabaseModule,
     AuthModule,
     CoursesModule,
+    AccountsModule,
+    EnrollmentsModule,
+    StudentsModule,
+    TeachersModule,
   ],
   controllers: [HealthController],
   providers: [
