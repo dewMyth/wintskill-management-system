@@ -134,7 +134,7 @@ export function CourseDetailPage() {
       </div>
 
       <Tabs defaultValue="batches">
-        <TabsList className="mb-2 w-full sm:w-auto">
+        <TabsList className="mb-2 w-full sm:w-fit">
           <TabsTrigger value="batches" className="min-h-11 flex-1 sm:flex-none">
             Intakes ({course.batches.length})
           </TabsTrigger>

@@ -1,5 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectNoHorizontalScroll, expectTouchTargets, login } from './helpers';
+import {
+  expectNoHorizontalScroll,
+  expectTouchTargets,
+  login,
+  openNav,
+} from './helpers';
 
 const year = new Date().getFullYear();
 const randomCode = () =>
@@ -11,7 +16,7 @@ const randomCode = () =>
 async function openCourses(page: Page) {
   await login(page, 'admin');
   await expect(page).toHaveURL('/admin');
-  await page.getByRole('link', { name: 'Courses' }).last().click();
+  await openNav(page, 'Courses');
   await expect(page.getByRole('heading', { name: 'Courses' })).toBeVisible();
 }
 

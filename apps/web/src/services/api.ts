@@ -41,7 +41,15 @@ export const baseQueryWithReauth: BaseQueryFn<
 
 export const api = createApi({
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Me', 'Course', 'Batch', 'Student', 'Teacher', 'Calendar'],
+  tagTypes: [
+    'Me',
+    'Course',
+    'Batch',
+    'Student',
+    'Teacher',
+    'Calendar',
+    'Attendance',
+  ],
   endpoints: () => ({}),
 });
 
@@ -54,4 +62,27 @@ export function errorMessage(
     { message?: string | string[] } | undefined;
   if (Array.isArray(data?.message)) return data.message.join('. ');
   return data?.message ?? fallback;
+}
+
+/** Downloads a file from the API with the user's token (a plain link cannot send it). */
+export async function downloadFile(path: string) {
+  const { data } = await supabase.auth.getSession();
+  const res = await fetch(
+    new URL(`${import.meta.env.VITE_API_URL}/${path}`, window.location.origin),
+    {
+      headers: { authorization: `Bearer ${data.session?.access_token}` },
+    },
+  );
+  if (!res.ok) throw new Error('Download failed');
+  const filename =
+    /filename="([^"]+)"/.exec(
+      res.headers.get('content-disposition') ?? '',
+    )?.[1] ?? 'download';
+  const url = URL.createObjectURL(await res.blob());
+  const link = Object.assign(document.createElement('a'), {
+    href: url,
+    download: filename,
+  });
+  link.click();
+  URL.revokeObjectURL(url);
 }

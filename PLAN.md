@@ -285,10 +285,10 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Reports: per-session summary, attendance % per enrollment (overall and per module), batch overview; CSV export for admins
 
 **Success criteria**
-- [ ] Re-saving updates records (upsert on `sessionId+enrollmentId`) and creates no duplicates
-- [ ] Teacher marking another teacher's session → 403 (tested)
-- [ ] Attendance % calculation unit tested (excused sessions excluded from the denominator)
-- [ ] A batch of 30 students can be marked in under 30 seconds on a phone
+- [x] Re-saving updates records (upsert on `sessionId+enrollmentId`) and creates no duplicates
+- [x] Teacher marking another teacher's session → 403 (tested)
+- [x] Attendance % calculation unit tested (excused sessions excluded from the denominator)
+- [x] A batch of 30 students can be marked in under 30 seconds on a phone
 
 ### Phase 7 — LMS: materials & assignments
 - Admin and teachers, per module: upload materials (PDF, MP4, images; max size set in config) and assignments (title, description, due date, optional file; read-only for students). Reorder them, edit them, delete them (deleting also removes the stored file). Teachers can only edit or delete what they uploaded

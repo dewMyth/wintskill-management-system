@@ -173,6 +173,41 @@ const btc = await createCourse(
 const [hscBatch] = hsc.batches;
 const [btcBatch] = btc.batches;
 
+// 27 more HSC students (HSC2026A004–030), so a register has a realistic 30 names.
+// Created first, so the three named students below stay at the top of the student list.
+const firstNames = [
+  'Hiruni',
+  'Sachini',
+  'Nadeesha',
+  'Imesha',
+  'Thilini',
+  'Chamodi',
+  'Dinithi',
+  'Kaveesha',
+  'Piumi',
+];
+const lastNames = ['Perera', 'Fernando', 'Wijesinghe'];
+for (let i = 0; i < 27; i++) {
+  const n = i + 4;
+  const registrationNo = `HSC2026A${String(n).padStart(3, '0')}`;
+  const first = firstNames[i % firstNames.length];
+  const last = lastNames[Math.floor(i / firstNames.length)];
+  const student = await createStudent(
+    registrationNo,
+    {
+      fullName: `${first} ${last}`,
+      phone: `0770000${String(n).padStart(3, '0')}`,
+    },
+    {
+      nameWithInitials: `${first[0]}. ${last}`,
+      nicOrPassport: `2005${String(n).padStart(8, '0')}`,
+      dateOfBirth: new Date('2005-06-01'),
+      address: 'Kottawa',
+    },
+  );
+  await enroll(student.id, hscBatch.id, registrationNo);
+}
+
 const kavindi = await createStudent(
   'HSC2026A001',
   { fullName: 'Kavindi Sewwandi Silva', phone: '0711111111' },
@@ -241,7 +276,7 @@ const at = (dayOffset: number, time: string) =>
   );
 
 await prisma.classSession.createMany({
-  data: [0, 7]
+  data: [-7, 0, 7]
     .flatMap((week) => [
       {
         batchId: hscBatch.id,
@@ -294,5 +329,5 @@ await prisma.calendarEvent.createMany({
 
 await prisma.$disconnect();
 console.log(
-  `Seeded. Users: admin, teacher, newteacher (must change password), HSC2026A001-003. Password: ${password}`,
+  `Seeded. Users: admin, teacher, newteacher (must change password), HSC2026A001-030. Password: ${password}`,
 );

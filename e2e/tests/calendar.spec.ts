@@ -3,13 +3,14 @@ import {
   expectNoHorizontalScroll,
   expectTouchTargets,
   login,
+  openNav,
   randomDigits,
 } from './helpers';
 
 async function openCalendar(page: Page, username: string) {
   await login(page, username);
   await expect(page).not.toHaveURL('/login');
-  await page.getByRole('link', { name: 'Calendar' }).last().click();
+  await openNav(page, 'Calendar');
   await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible();
 }
 

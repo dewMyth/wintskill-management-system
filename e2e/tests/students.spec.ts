@@ -4,6 +4,7 @@ import {
   expectTouchTargets,
   firstLogin,
   login,
+  openNav,
   PNG,
   randomDigits,
 } from './helpers';
@@ -13,7 +14,7 @@ const year = 2026; // seeded intakes are 2026A
 async function openStudents(page: Page) {
   await login(page, 'admin');
   await expect(page).toHaveURL('/admin');
-  await page.getByRole('link', { name: 'Students' }).last().click();
+  await openNav(page, 'Students');
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible();
 }
 
@@ -194,7 +195,7 @@ test('admin adds a teacher who must set a password; duplicates are refused', asy
   const username = `t.${randomDigits(6)}`;
   const name = `Sanduni ${username}`;
   await login(page, 'admin');
-  await page.getByRole('link', { name: 'Teachers' }).last().click();
+  await openNav(page, 'Teachers');
 
   await page.getByRole('button', { name: 'Add teacher' }).first().click();
   await page.getByLabel('Username').fill(username);
@@ -267,7 +268,7 @@ test.describe('small phone (360px)', () => {
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
 
-    await page.getByRole('link', { name: 'Teachers' }).last().click();
+    await openNav(page, 'Teachers');
     await expect(page.getByText('Nimali Perera')).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);

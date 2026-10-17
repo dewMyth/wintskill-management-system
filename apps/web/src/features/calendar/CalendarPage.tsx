@@ -96,6 +96,7 @@ export function CalendarPage() {
   const [range, setRange] = useState<{ from: string; to: string }>();
   const [batchId, setBatchId] = useState(ALL);
   const [details, setDetails] = useState<CalendarItem>();
+  const [attendanceHref, setAttendanceHref] = useState<string>();
   const [sessionForm, setSessionForm] = useState<{
     open: boolean;
     edit?: CalendarItem;
@@ -138,6 +139,13 @@ export function CalendarPage() {
   );
 
   const openItem = (item: CalendarItem) => {
+    const started =
+      item.kind === 'session' && new Date(item.session.startsAt) <= new Date();
+    setAttendanceHref(
+      started && role !== 'STUDENT'
+        ? `/${role.toLowerCase()}/attendance/${item.session.id}`
+        : undefined,
+    );
     if (!isAdmin) setDetails(item);
     else if (item.kind === 'session')
       setSessionForm({ open: true, edit: item });
@@ -291,6 +299,7 @@ export function CalendarPage() {
                 : undefined
             }
             initial={sessionInitial}
+            attendanceHref={attendanceHref}
           />
           <EventFormDialog
             open={eventForm.open}
@@ -308,6 +317,7 @@ export function CalendarPage() {
         item={details}
         onOpenChange={(open) => !open && setDetails(undefined)}
         hideTeacher={role === 'TEACHER'}
+        attendanceHref={attendanceHref}
       />
     </>
   );

@@ -1,4 +1,7 @@
+import { ClipboardCheckIcon } from 'lucide-react';
+import { Link } from 'react-router';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -22,10 +25,17 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   /** Hide the teacher's name (when the teacher is the viewer). */
   hideTeacher?: boolean;
+  /** Shown for a teacher's class once it has started. */
+  attendanceHref?: string;
 }
 
 /** Read-only view of a class or event, for teachers and students. */
-export function DetailsDialog({ item, onOpenChange, hideTeacher }: Props) {
+export function DetailsDialog({
+  item,
+  onOpenChange,
+  hideTeacher,
+  attendanceHref,
+}: Props) {
   const rows: [string, string | null | undefined][] =
     item?.kind === 'session'
       ? [
@@ -90,6 +100,13 @@ export function DetailsDialog({ item, onOpenChange, hideTeacher }: Props) {
                   </div>
                 ))}
             </dl>
+            {attendanceHref && (
+              <Button asChild className="min-h-11">
+                <Link to={attendanceHref}>
+                  <ClipboardCheckIcon /> Take attendance
+                </Link>
+              </Button>
+            )}
           </>
         )}
       </DialogContent>

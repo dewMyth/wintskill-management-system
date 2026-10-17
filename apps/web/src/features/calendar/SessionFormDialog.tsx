@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trash2Icon } from 'lucide-react';
+import { ClipboardCheckIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -62,6 +63,8 @@ interface Props {
   session?: ClassSession;
   /** Prefill for a new class, e.g. the slot tapped in the calendar. */
   initial?: { start?: Date; end?: Date; batchId?: string };
+  /** Link to this class's register, once it has started. */
+  attendanceHref?: string;
 }
 
 export function SessionFormDialog({
@@ -69,6 +72,7 @@ export function SessionFormDialog({
   onOpenChange,
   session,
   initial,
+  attendanceHref,
 }: Props) {
   const [createSession] = useCreateSessionMutation();
   const [updateSession] = useUpdateSessionMutation();
@@ -284,14 +288,23 @@ export function SessionFormDialog({
           />
         )}
         {session && (
-          <Button
-            type="button"
-            variant="ghost"
-            className="min-h-11 self-start text-destructive"
-            onClick={() => setConfirmDelete(true)}
-          >
-            <Trash2Icon /> Delete this class
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {attendanceHref && (
+              <Button asChild variant="outline" className="min-h-11">
+                <Link to={attendanceHref}>
+                  <ClipboardCheckIcon /> Take attendance
+                </Link>
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11 text-destructive"
+              onClick={() => setConfirmDelete(true)}
+            >
+              <Trash2Icon /> Delete this class
+            </Button>
+          </div>
         )}
       </FormDialog>
       <ConfirmDialog

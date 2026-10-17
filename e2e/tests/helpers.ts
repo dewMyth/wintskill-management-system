@@ -76,3 +76,20 @@ export async function firstLogin(
   await page.getByLabel('Confirm new password').fill(newPassword);
   await page.getByRole('button', { name: 'Save password' }).click();
 }
+
+/** Opens a main-menu page: the visible tab or sidebar link, or via "More" on phones. */
+export async function openNav(page: Page, label: string) {
+  // Wait for the menu (sign-in may still be redirecting).
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .filter({ visible: true })
+    .first()
+    .waitFor();
+  const link = page
+    .getByRole('link', { name: label, exact: true })
+    .filter({ visible: true });
+  if (await link.count()) return link.first().click();
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('menuitem', { name: label }).click();
+  await expect(page.getByRole('menu')).toBeHidden(); // let the closing animation finish
+}

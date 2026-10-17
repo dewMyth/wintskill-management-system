@@ -1,6 +1,7 @@
 import {
   BookOpenIcon,
   CalendarDaysIcon,
+  ClipboardCheckIcon,
   GraduationCapIcon,
   LayoutDashboardIcon,
   UserRoundIcon,
@@ -23,6 +24,7 @@ export const navItems: Record<Role, NavItem[]> = {
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboardIcon, end: true },
     { to: '/admin/students', label: 'Students', icon: UsersIcon },
     { to: '/admin/calendar', label: 'Calendar', icon: CalendarDaysIcon },
+    { to: '/admin/attendance', label: 'Attendance', icon: ClipboardCheckIcon },
     { to: '/admin/courses', label: 'Courses', icon: BookOpenIcon },
     { to: '/admin/teachers', label: 'Teachers', icon: GraduationCapIcon },
   ],
@@ -34,6 +36,11 @@ export const navItems: Record<Role, NavItem[]> = {
       end: true,
     },
     { to: '/teacher/calendar', label: 'Calendar', icon: CalendarDaysIcon },
+    {
+      to: '/teacher/attendance',
+      label: 'Attendance',
+      icon: ClipboardCheckIcon,
+    },
     { to: '/account', label: 'Account', icon: UserRoundIcon },
   ],
   STUDENT: [

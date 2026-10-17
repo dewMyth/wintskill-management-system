@@ -2,6 +2,8 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 import { AppShell } from '@/components/layout/AppShell';
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { AttendancePage } from '@/features/attendance/AttendancePage';
+import { AttendanceSheetPage } from '@/features/attendance/AttendanceSheetPage';
 import { RequireRole } from '@/features/auth/RequireRole';
 import { CalendarPage } from '@/features/calendar/CalendarPage';
 import { CourseDetailPage } from '@/features/courses/CourseDetailPage';
@@ -49,6 +51,11 @@ export const routes: RouteObject[] = [
                   { path: 'students/:id/edit', element: <EditStudentPage /> },
                   { path: 'teachers', element: <TeachersPage /> },
                   { path: 'calendar', element: <CalendarPage /> },
+                  { path: 'attendance', element: <AttendancePage /> },
+                  {
+                    path: 'attendance/:sessionId',
+                    element: <AttendanceSheetPage />,
+                  },
                 ],
               },
               {
@@ -57,6 +64,11 @@ export const routes: RouteObject[] = [
                 children: [
                   { index: true, element: <DashboardPage /> },
                   { path: 'calendar', element: <CalendarPage /> },
+                  { path: 'attendance', element: <AttendancePage /> },
+                  {
+                    path: 'attendance/:sessionId',
+                    element: <AttendanceSheetPage />,
+                  },
                 ],
               },
               {

@@ -1,11 +1,24 @@
-import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router';
+import {
+  EllipsisIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+} from 'lucide-react';
+import { NavLink, Outlet, useLocation } from 'react-router';
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { sidebarToggled } from '@/features/ui/ui-slice';
 import { cn } from '@/lib/utils';
 import { navItems } from './nav';
 import { UserMenu } from './UserMenu';
+
+const tabClass =
+  'flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground';
 
 /** Mobile: top bar + bottom tab bar. From md: collapsible sidebar. */
 export function AppShell() {
@@ -13,6 +26,11 @@ export function AppShell() {
   const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
   const dispatch = useAppDispatch();
   const items = navItems[role];
+  // Phones show at most 5 tabs; the rest go under "More".
+  const tabs = items.length > 5 ? items.slice(0, 4) : items;
+  const more = items.slice(tabs.length);
+  const { pathname } = useLocation();
+  const moreActive = more.some(({ to }) => pathname.startsWith(to));
 
   return (
     <div className="flex min-h-dvh">
@@ -95,22 +113,38 @@ export function AppShell() {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-30 flex border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
       >
-        {items.map(({ to, label, icon: Icon, end }) => (
+        {tabs.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
             className={({ isActive }) =>
-              cn(
-                'flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground',
-                isActive && 'text-primary',
-              )
+              cn(tabClass, isActive && 'text-primary')
             }
           >
             <Icon className="size-5" />
             {label}
           </NavLink>
         ))}
+        {more.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(tabClass, moreActive && 'text-primary')}
+            >
+              <EllipsisIcon className="size-5" />
+              More
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="end" className="w-48">
+              {more.map(({ to, label, icon: Icon }) => (
+                <DropdownMenuItem key={to} asChild className="min-h-11">
+                  <NavLink to={to}>
+                    <Icon /> {label}
+                  </NavLink>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </nav>
     </div>
   );

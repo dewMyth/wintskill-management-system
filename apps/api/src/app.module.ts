@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthGuard } from './auth/auth.guard.js';
 import { AccountsModule } from './accounts/accounts.module.js';
+import { AttendanceModule } from './attendance/attendance.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { CalendarModule } from './calendar/calendar.module.js';
 import { RolesGuard } from './auth/roles.guard.js';
@@ -37,6 +38,7 @@ import { TeachersModule } from './teachers/teachers.module.js';
     StudentsModule,
     TeachersModule,
     CalendarModule,
+    AttendanceModule,
   ],
   controllers: [HealthController],
   providers: [
