@@ -1,0 +1,23 @@
+{
+  "name": "wintskill-sms",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter api --filter web dev",
+    "build": "pnpm --filter web --filter api build",
+    "lint": "pnpm --filter api --filter web lint",
+    "test": "pnpm --filter api --filter web test",
+    "test:e2e": "pnpm --filter e2e test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "supabase": "supabase"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "supabase": "^2.121.0"
+  }
+}
