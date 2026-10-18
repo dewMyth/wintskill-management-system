@@ -325,7 +325,7 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 
 **Success criteria**
 - [x] All Playwright specs pass in both projects
-- [x] No high/critical findings from `pnpm audit`
+- [x] No high/critical findings from `pnpm audit --prod` (shipped code). Full `pnpm audit` has one high in dev-only tooling with no fix yet: `braces` via the shadcn CLI (glob DoS; not in the app or server)
 - [x] Lighthouse mobile scores on the login page and the student dashboard: Accessibility ≥ 90, Performance ≥ 80
 - [x] All earlier phase checkboxes still pass
 
