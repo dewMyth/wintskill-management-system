@@ -332,7 +332,7 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 ### Phase 10 — Deployment to Railway
 - Multi-stage `Dockerfile`: build web + api, run `node apps/api/dist/main` (production deps only)
 - NestJS serves `apps/web/dist` for every non-`/api` route (SPA fallback)
-- Railway service (config in `railway.json`) deploys the **`release/0.1.0`** branch: pre-deploy command `npx prisma migrate deploy`, health check `/api/v1/health`, env vars from §1 set from the `.env` files (the `VITE_*` ones are Docker build args)
+- Railway service (config in `.railway/railway.ts`, Railway's infrastructure as code; `railway.json` is deprecated and was not read) deploys the **`release/0.1.0`** branch: pre-deploy command `npx prisma migrate deploy`, health check `/api/v1/health`, env vars from §1 set from the `.env` files (the `VITE_*` ones are Docker build args)
 - Production Supabase project: create private buckets `avatars` and `materials`, then run the seed once to create the first admin account only, and `pnpm --filter api db:seed:courses` to create the real courses and modules (`prisma/courses.ts`; skips courses that already exist)
 - Custom domain + HTTPS (Railway-managed)
 
