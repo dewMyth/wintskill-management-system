@@ -19,7 +19,7 @@ pnpm --filter api db:seed
 pnpm --filter e2e exec playwright install chromium   # first time only
 ```
 
-Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must change password first), students `HSC2026A001`–`HSC2026A003`.
+Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must change password first), students `HSC2026A001`–`HSC2026A030` (`HSC2026A001` is also in BTC).
 
 ## Commands
 

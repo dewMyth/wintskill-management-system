@@ -6,3 +6,8 @@ allowBuilds:
   '@prisma/engines': true
   esbuild: true
   prisma: true
+
+# Security: lodash <4.18.1 (pulled in by Prisma Studio tooling) has code-injection and
+# prototype-pollution advisories.
+overrides:
+  lodash: ^4.18.1

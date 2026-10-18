@@ -324,10 +324,10 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Fix every defect found, add a regression test for each one
 
 **Success criteria**
-- [ ] All Playwright specs pass in both projects
-- [ ] No high/critical findings from `pnpm audit`
-- [ ] Lighthouse mobile scores on the login page and the student dashboard: Accessibility ≥ 90, Performance ≥ 80
-- [ ] All earlier phase checkboxes still pass
+- [x] All Playwright specs pass in both projects
+- [x] No high/critical findings from `pnpm audit`
+- [x] Lighthouse mobile scores on the login page and the student dashboard: Accessibility ≥ 90, Performance ≥ 80
+- [x] All earlier phase checkboxes still pass
 
 ### Phase 10 — Deployment to Railway
 - Multi-stage `Dockerfile`: build web + api, run `node apps/api/dist/main` (production deps only)

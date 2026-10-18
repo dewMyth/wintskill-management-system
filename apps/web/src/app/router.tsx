@@ -1,25 +1,67 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { AppShell } from '@/components/layout/AppShell';
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage';
-import { LoginPage } from '@/features/auth/LoginPage';
-import { AttendancePage } from '@/features/attendance/AttendancePage';
-import { AttendanceSheetPage } from '@/features/attendance/AttendanceSheetPage';
-import { RequireRole } from '@/features/auth/RequireRole';
-import { CalendarPage } from '@/features/calendar/CalendarPage';
-import { CourseDetailPage } from '@/features/courses/CourseDetailPage';
-import { LmsPage } from '@/features/lms/LmsPage';
-import { ViewerPage } from '@/features/lms/viewer/ViewerPage';
-import { CoursesPage } from '@/features/courses/CoursesPage';
-import { EditStudentPage } from '@/features/students/EditStudentPage';
-import { RegisterStudentPage } from '@/features/students/RegisterStudentPage';
-import { StudentDetailPage } from '@/features/students/StudentDetailPage';
-import { StudentsPage } from '@/features/students/StudentsPage';
-import { TeachersPage } from '@/features/teachers/TeachersPage';
 import { HomeRedirect } from '@/features/auth/HomeRedirect';
-import { AccountPage } from '@/pages/AccountPage';
-import { DashboardPage } from '@/pages/DashboardPage';
+import { LoginPage } from '@/features/auth/LoginPage';
+import { RequireRole } from '@/features/auth/RequireRole';
 import { ErrorPage } from '@/pages/ErrorPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+
+// Pages load on first visit, so the sign-in screen does not wait for the calendar or PDF code.
+const pages = {
+  account: () =>
+    import('@/pages/AccountPage').then((m) => ({ Component: m.AccountPage })),
+  dashboard: () =>
+    import('@/pages/DashboardPage').then((m) => ({
+      Component: m.DashboardPage,
+    })),
+  courses: () =>
+    import('@/features/courses/CoursesPage').then((m) => ({
+      Component: m.CoursesPage,
+    })),
+  course: () =>
+    import('@/features/courses/CourseDetailPage').then((m) => ({
+      Component: m.CourseDetailPage,
+    })),
+  students: () =>
+    import('@/features/students/StudentsPage').then((m) => ({
+      Component: m.StudentsPage,
+    })),
+  registerStudent: () =>
+    import('@/features/students/RegisterStudentPage').then((m) => ({
+      Component: m.RegisterStudentPage,
+    })),
+  student: () =>
+    import('@/features/students/StudentDetailPage').then((m) => ({
+      Component: m.StudentDetailPage,
+    })),
+  editStudent: () =>
+    import('@/features/students/EditStudentPage').then((m) => ({
+      Component: m.EditStudentPage,
+    })),
+  teachers: () =>
+    import('@/features/teachers/TeachersPage').then((m) => ({
+      Component: m.TeachersPage,
+    })),
+  calendar: () =>
+    import('@/features/calendar/CalendarPage').then((m) => ({
+      Component: m.CalendarPage,
+    })),
+  lms: () =>
+    import('@/features/lms/LmsPage').then((m) => ({ Component: m.LmsPage })),
+  viewer: () =>
+    import('@/features/lms/viewer/ViewerPage').then((m) => ({
+      Component: m.ViewerPage,
+    })),
+  attendance: () =>
+    import('@/features/attendance/AttendancePage').then((m) => ({
+      Component: m.AttendancePage,
+    })),
+  register: () =>
+    import('@/features/attendance/AttendanceSheetPage').then((m) => ({
+      Component: m.AttendanceSheetPage,
+    })),
+};
 
 export const routes: RouteObject[] = [
   {
@@ -39,52 +81,46 @@ export const routes: RouteObject[] = [
           {
             element: <AppShell />,
             children: [
-              { path: 'account', element: <AccountPage /> },
+              { path: 'account', lazy: pages.account },
               {
                 path: 'admin',
                 element: <RequireRole role="ADMIN" />,
                 children: [
-                  { index: true, element: <DashboardPage /> },
-                  { path: 'courses', element: <CoursesPage /> },
-                  { path: 'courses/:id', element: <CourseDetailPage /> },
-                  { path: 'students', element: <StudentsPage /> },
-                  { path: 'students/new', element: <RegisterStudentPage /> },
-                  { path: 'students/:id', element: <StudentDetailPage /> },
-                  { path: 'students/:id/edit', element: <EditStudentPage /> },
-                  { path: 'teachers', element: <TeachersPage /> },
-                  { path: 'calendar', element: <CalendarPage /> },
-                  { path: 'materials', element: <LmsPage /> },
-                  { path: 'view/:type/:id', element: <ViewerPage /> },
-                  { path: 'attendance', element: <AttendancePage /> },
-                  {
-                    path: 'attendance/:sessionId',
-                    element: <AttendanceSheetPage />,
-                  },
+                  { index: true, lazy: pages.dashboard },
+                  { path: 'courses', lazy: pages.courses },
+                  { path: 'courses/:id', lazy: pages.course },
+                  { path: 'students', lazy: pages.students },
+                  { path: 'students/new', lazy: pages.registerStudent },
+                  { path: 'students/:id', lazy: pages.student },
+                  { path: 'students/:id/edit', lazy: pages.editStudent },
+                  { path: 'teachers', lazy: pages.teachers },
+                  { path: 'calendar', lazy: pages.calendar },
+                  { path: 'materials', lazy: pages.lms },
+                  { path: 'view/:type/:id', lazy: pages.viewer },
+                  { path: 'attendance', lazy: pages.attendance },
+                  { path: 'attendance/:sessionId', lazy: pages.register },
                 ],
               },
               {
                 path: 'teacher',
                 element: <RequireRole role="TEACHER" />,
                 children: [
-                  { index: true, element: <DashboardPage /> },
-                  { path: 'calendar', element: <CalendarPage /> },
-                  { path: 'materials', element: <LmsPage /> },
-                  { path: 'view/:type/:id', element: <ViewerPage /> },
-                  { path: 'attendance', element: <AttendancePage /> },
-                  {
-                    path: 'attendance/:sessionId',
-                    element: <AttendanceSheetPage />,
-                  },
+                  { index: true, lazy: pages.dashboard },
+                  { path: 'calendar', lazy: pages.calendar },
+                  { path: 'materials', lazy: pages.lms },
+                  { path: 'view/:type/:id', lazy: pages.viewer },
+                  { path: 'attendance', lazy: pages.attendance },
+                  { path: 'attendance/:sessionId', lazy: pages.register },
                 ],
               },
               {
                 path: 'student',
                 element: <RequireRole role="STUDENT" />,
                 children: [
-                  { index: true, element: <DashboardPage /> },
-                  { path: 'calendar', element: <CalendarPage /> },
-                  { path: 'learn', element: <LmsPage /> },
-                  { path: 'view/:type/:id', element: <ViewerPage /> },
+                  { index: true, lazy: pages.dashboard },
+                  { path: 'calendar', lazy: pages.calendar },
+                  { path: 'learn', lazy: pages.lms },
+                  { path: 'view/:type/:id', lazy: pages.viewer },
                 ],
               },
             ],

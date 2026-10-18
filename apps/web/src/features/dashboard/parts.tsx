@@ -66,7 +66,7 @@ export function Meter({
         aria-label={label}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={value ?? undefined}
+        aria-valuenow={value ?? 0}
         aria-valuetext={value === null ? 'No data yet' : `${value}%`}
         className={cn(
           'h-2 overflow-hidden rounded-full',

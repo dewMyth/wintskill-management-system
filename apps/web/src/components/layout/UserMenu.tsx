@@ -37,7 +37,7 @@ export function UserMenu() {
           className="size-11 rounded-full"
           aria-label="Open user menu"
         >
-          <Avatar className="size-9">
+          <Avatar className="size-9" aria-hidden>
             {user.avatarUrl && (
               <AvatarImage
                 src={user.avatarUrl}
