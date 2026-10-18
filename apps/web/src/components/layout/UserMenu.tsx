@@ -6,7 +6,7 @@ import {
   UserRoundIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { useAppDispatch, useAppSelector } from '@/app/store';
+import { persistor, useAppDispatch, useAppSelector } from '@/app/store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,9 +73,10 @@ export function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="min-h-11"
-          onSelect={() =>
-            dispatch(themeChanged(theme === 'dark' ? 'light' : 'dark'))
-          }
+          onSelect={() => {
+            dispatch(themeChanged(theme === 'dark' ? 'light' : 'dark'));
+            void persistor.flush(); // save at once, so a quick refresh keeps it
+          }}
         >
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           {theme === 'dark' ? 'Light mode' : 'Dark mode'}

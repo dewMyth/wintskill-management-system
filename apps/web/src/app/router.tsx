@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { AppShell } from '@/components/layout/AppShell';
+import { Spinner } from '@/components/ui/spinner';
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage';
 import { HomeRedirect } from '@/features/auth/HomeRedirect';
 import { LoginPage } from '@/features/auth/LoginPage';
@@ -66,6 +67,16 @@ const pages = {
 export const routes: RouteObject[] = [
   {
     errorElement: <ErrorPage />,
+    // Shown on first load while the requested page's code is fetched.
+    hydrateFallbackElement: (
+      <div
+        className="flex min-h-dvh items-center justify-center"
+        aria-busy="true"
+        aria-label="Loading"
+      >
+        <Spinner className="size-8 text-primary" />
+      </div>
+    ),
     children: [
       { path: 'login', element: <LoginPage /> },
       {

@@ -24,12 +24,14 @@ export default defineConfig({
         {
           command: 'pnpm --filter api dev',
           url: 'http://localhost:3000/api/v1/health',
-          reuseExistingServer: !process.env.CI,
+          // Never reuse a running server: one started from the hosted .env would point tests at real data.
+          reuseExistingServer: false,
         },
         {
           command: 'pnpm --filter web dev',
           url: 'http://localhost:5173',
-          reuseExistingServer: !process.env.CI,
+          // Never reuse a running server: one started from the hosted .env would point tests at real data.
+          reuseExistingServer: false,
         },
       ]
     : undefined,

@@ -21,6 +21,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { StudentsModule } from './students/students.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
 import { TeachersModule } from './teachers/teachers.module.js';
+import { WebAppModule } from './web-app.module.js';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { TeachersModule } from './teachers/teachers.module.js';
     AttendanceModule,
     LmsModule,
     DashboardModule,
+    WebAppModule,
   ],
   controllers: [HealthController],
   providers: [

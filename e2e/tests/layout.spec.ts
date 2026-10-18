@@ -38,6 +38,7 @@ test.describe('small phone (360px)', () => {
 
 test('dark mode is remembered', async ({ page }) => {
   await login(page, 'teacher');
+  await expect(page).toHaveURL('/teacher');
   await page.getByRole('button', { name: 'Open user menu' }).click();
   await page.getByRole('menuitem', { name: 'Dark mode' }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
