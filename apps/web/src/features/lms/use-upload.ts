@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { errorMessage } from '@/services/api';
-import { uploadToStorage, useRequestUploadMutation } from './lms-api';
-import { MAX_UPLOAD_MB } from './types';
+import {
+  uploadToStorage,
+  useGetUploadLimitQuery,
+  useRequestUploadMutation,
+} from './lms-api';
 
 /** Checks the file, gets an upload token and sends the file to storage. Returns its path. */
 export function useUpload(
   purpose: 'material' | 'assignment',
   allowedTypes: string[],
 ) {
+  // The API owns the limit (it must match the storage bucket's); it re-checks every request.
+  const maxMb = useGetUploadLimitQuery().data?.maxMb;
   const [requestUpload] = useRequestUploadMutation();
   const [uploading, setUploading] = useState(false);
 
@@ -19,8 +24,8 @@ export function useUpload(
           : 'Choose a PDF or image',
       );
     }
-    if (file.size > MAX_UPLOAD_MB * 1024 * 1024)
-      throw new Error(`Files can be up to ${MAX_UPLOAD_MB} MB`);
+    if (maxMb && file.size > maxMb * 1024 * 1024)
+      throw new Error(`Files can be up to ${maxMb} MB`);
     setUploading(true);
     try {
       const result = await requestUpload({
@@ -38,5 +43,5 @@ export function useUpload(
     }
   };
 
-  return { upload, uploading };
+  return { upload, uploading, maxMb };
 }

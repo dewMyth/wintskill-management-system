@@ -34,6 +34,7 @@ const matrix: [Method, string, Role[]][] = [
   ['get', `/sessions/${id}/attendance`, AT],
   ['put', `/sessions/${id}/attendance`, AT],
   ['get', `/attendance/batches/${id}`, AT],
+  ['get', '/lms/upload-limit', AT],
   ['post', `/modules/${id}/uploads`, AT],
   ['post', `/modules/${id}/materials`, AT],
   ['put', `/modules/${id}/materials/order`, AT],

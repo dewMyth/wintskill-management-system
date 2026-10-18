@@ -16,7 +16,6 @@ import {
 import {
   assignmentTypes,
   materialTypes,
-  MAX_UPLOAD_MB,
   type Assignment,
   type Material,
 } from './types';
@@ -43,7 +42,7 @@ export function MaterialDialog({
   const [file, setFile] = useState<File>();
   const [title, setTitle] = useState(material?.title ?? '');
   const [error, setError] = useState<string>();
-  const { upload, uploading } = useUpload('material', materialTypes);
+  const { upload, uploading, maxMb } = useUpload('material', materialTypes);
   const [createMaterial, { isLoading: creating }] = useCreateMaterialMutation();
   const [updateMaterial, { isLoading: updating }] = useUpdateMaterialMutation();
 
@@ -83,7 +82,7 @@ export function MaterialDialog({
       description={
         material
           ? undefined
-          : `PDF, MP4 video or image, up to ${MAX_UPLOAD_MB} MB. Students can view it but not download it.`
+          : `PDF, MP4 video or image${maxMb ? `, up to ${maxMb} MB` : ''}. Students can view it but not download it.`
       }
       submitLabel={material ? 'Save' : uploading ? 'Uploading…' : 'Upload'}
       onSubmit={submit}

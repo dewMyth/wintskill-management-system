@@ -204,10 +204,14 @@ describe('uploading', () => {
     expect((await ask('application/zip', 10).expect(400)).body.message).toBe(
       'Upload a PDF, MP4 video or image',
     );
+    const { maxMb } = (await api(teacher).get('/lms/upload-limit').expect(200))
+      .body as { maxMb: number };
+    expect(maxMb).toBe(Number(process.env.MATERIAL_MAX_MB ?? 100));
+    await ask('application/pdf', maxMb * 1024 * 1024).expect(201);
     expect(
-      (await ask('application/pdf', 101 * 1024 * 1024).expect(400)).body
+      (await ask('application/pdf', (maxMb + 1) * 1024 * 1024).expect(400)).body
         .message,
-    ).toBe('Files can be up to 100 MB');
+    ).toBe(`Files can be up to ${maxMb} MB`);
     expect(
       (await ask('video/mp4', 10, 'assignment').expect(400)).body.message,
     ).toBe('Upload a PDF or image');

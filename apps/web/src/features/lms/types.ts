@@ -55,7 +55,6 @@ export const kindLabels: Record<MaterialKind, string> = {
   IMAGE: 'Image',
 };
 
-export const MAX_UPLOAD_MB = 100;
 export const materialTypes = [
   'application/pdf',
   'video/mp4',

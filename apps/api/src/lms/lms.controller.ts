@@ -59,6 +59,11 @@ export class LmsController {
     return this.lms.viewAssignment(user, assignmentId);
   }
 
+  @Get('lms/upload-limit')
+  uploadLimit() {
+    return this.lms.uploadLimit();
+  }
+
   @Post('modules/:id/uploads')
   uploadUrl(@Param('id', id) moduleId: string, @Body() dto: UploadRequestDto) {
     return this.lms.uploadUrl(moduleId, dto);

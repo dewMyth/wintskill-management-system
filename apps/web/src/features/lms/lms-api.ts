@@ -25,6 +25,9 @@ export const lmsApi = api.injectEndpoints({
       query: (courseId) => `courses/${courseId}/content`,
       providesTags: [tag],
     }),
+    getUploadLimit: build.query<{ maxMb: number }, void>({
+      query: () => 'lms/upload-limit',
+    }),
     requestUpload: build.mutation<
       { path: string; token: string },
       {
@@ -119,6 +122,7 @@ export const lmsApi = api.injectEndpoints({
 export const {
   useGetLmsCoursesQuery,
   useGetCourseContentQuery,
+  useGetUploadLimitQuery,
   useRequestUploadMutation,
   useCreateMaterialMutation,
   useUpdateMaterialMutation,

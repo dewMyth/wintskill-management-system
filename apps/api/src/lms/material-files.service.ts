@@ -34,14 +34,16 @@ const VIEW_SECONDS: Record<MaterialKind, number> = {
  */
 @Injectable()
 export class MaterialFiles {
+  /** Largest upload in MB; must not exceed the bucket's own limit. */
+  readonly maxMb: number;
   private readonly maxBytes: number;
 
   constructor(
     @Inject(SUPABASE) private readonly supabase: Supabase,
     config: ConfigService<Env, true>,
   ) {
-    this.maxBytes =
-      config.get('MATERIAL_MAX_MB', { infer: true }) * 1024 * 1024;
+    this.maxMb = config.get('MATERIAL_MAX_MB', { infer: true });
+    this.maxBytes = this.maxMb * 1024 * 1024;
   }
 
   async uploadUrl(
@@ -61,9 +63,7 @@ export class MaterialFiles {
       );
     }
     if (size > this.maxBytes)
-      throw new BadRequestException(
-        `Files can be up to ${this.maxBytes / 1024 / 1024} MB`,
-      );
+      throw new BadRequestException(`Files can be up to ${this.maxMb} MB`);
     const path = `${folder}/${randomUUID()}.${type.ext}`;
     const { data, error } = await this.supabase.storage
       .from(BUCKET)

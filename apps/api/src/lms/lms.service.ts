@@ -118,6 +118,10 @@ export class LmsService {
     };
   }
 
+  uploadLimit() {
+    return { maxMb: this.files.maxMb };
+  }
+
   async uploadUrl(moduleId: string, dto: UploadRequestDto) {
     return this.files.uploadUrl(await this.folder(moduleId), dto);
   }
