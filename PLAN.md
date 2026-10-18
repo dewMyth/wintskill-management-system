@@ -337,10 +337,10 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Custom domain + HTTPS (Railway-managed)
 
 **Success criteria**
-- [ ] A push to `release/0.1.0` deploys automatically; migrations run before the new version starts
-- [ ] `/api/v1/health` returns 200 on the Railway URL; deep links like `/student/calendar` load after refresh
-- [ ] Playwright smoke spec (login + dashboard) passes against the deployed URL
-- [ ] No secrets in the image or the repo
+- [x] A push to `release/0.1.0` deploys automatically; migrations run before the new version starts
+- [x] `/api/v1/health` returns 200 on the Railway URL; deep links like `/student/calendar` load after refresh
+- [ ] Playwright smoke spec (login + dashboard) passes against the deployed URL — health, deep links and sign-in reaching Supabase pass (`pnpm --filter e2e smoke`); the signed-in dashboard check runs once `SMOKE_USERNAME`/`SMOKE_PASSWORD` are given
+- [x] No secrets in the image or the repo
 
 ---
 
