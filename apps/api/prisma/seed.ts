@@ -4,7 +4,7 @@
  * Hair Dressing and Beautician, and 30 Hair Dressing students (the first one
  * also enrolled in Beautician). Every password is SEED_PASSWORD.
  */
-import 'dotenv/config';
+import './local-only.js';
 import { createClient } from '@supabase/supabase-js';
 import { internalEmail } from '../src/auth/internal-email.js';
 import {

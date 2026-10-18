@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './prisma/local-only.js';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
