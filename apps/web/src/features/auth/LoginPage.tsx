@@ -99,7 +99,7 @@ export function LoginPage() {
                   id="username"
                   autoComplete="username"
                   autoCapitalize="characters"
-                  placeholder="e.g. HSC2026A001"
+                  placeholder="e.g. HD2026A001"
                   className="h-11"
                   aria-invalid={!!errors.username}
                   {...form.register('username')}

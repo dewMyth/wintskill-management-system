@@ -187,6 +187,25 @@ describe('modules', () => {
     const detail = await as(admin).get(`/courses/${course.id}`);
     expect(detail.body.modules).toEqual([]);
   });
+
+  it('stores optional curriculum hours', async () => {
+    const course = await newCourse();
+    const url = `/courses/${course.id}/modules`;
+    await as(admin)
+      .post(url, { code: 'M01', title: 'A', hours: 0 })
+      .expect(400);
+    await as(admin)
+      .post(url, { code: 'M01', title: 'A', hours: 1.5 })
+      .expect(400);
+    const m = await as(admin)
+      .post(url, { code: 'M01', title: 'A', hours: 90 })
+      .expect(201);
+    expect(m.body.hours).toBe(90);
+    const cleared = await as(admin)
+      .patch(`/modules/${m.body.id}`, { hours: null })
+      .expect(200);
+    expect(cleared.body.hours).toBeNull();
+  });
 });
 
 describe('batches', () => {

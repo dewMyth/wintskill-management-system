@@ -19,7 +19,7 @@ const schema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2,6}$/, '2–6 letters, e.g. HSC'),
+    .regex(/^[A-Z]{2,6}$/, '2–6 letters, e.g. HD'),
   name: z.string().trim().min(1, 'Enter the course name').max(120),
   description: z.string().trim().max(1000),
 });
@@ -81,7 +81,7 @@ export function CourseFormDialog({
         <TextField
           id="course-code"
           label="Course code"
-          description="Starts every registration number, e.g. HSC → HSC2026A001. Cannot be changed later."
+          description="Starts every registration number, e.g. HD → HD2026A001. Cannot be changed later."
           maxLength={6}
           autoCapitalize="characters"
           className="h-11 uppercase"

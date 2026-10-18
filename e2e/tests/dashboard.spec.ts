@@ -38,7 +38,7 @@ test('the admin dashboard shows the academy figures in at most 3 API calls', asy
     ).toBeVisible();
   }
   expect(body.counts.activeStudents).toBeGreaterThanOrEqual(30); // the seed has 30
-  await expect(page.getByText(/HSC 2026A/).first()).toBeVisible();
+  await expect(page.getByText(/HD 2026A/).first()).toBeVisible();
   await expect(page.getByText('Attendance below 80%')).toBeVisible();
 
   await page.getByRole('link', { name: /^Active students/ }).click();
@@ -72,18 +72,20 @@ test('the student dashboard shows next class, attendance, progress and assignmen
 }, testInfo) => {
   // A student per project that no other test views materials as (this test opens the handout).
   const username =
-    testInfo.project.name === 'mobile' ? 'HSC2026A010' : 'HSC2026A012';
+    testInfo.project.name === 'mobile' ? 'HD2026A010' : 'HD2026A012';
   const { calls, body } = await loadDashboard(page, username);
   expect(calls.length).toBeLessThanOrEqual(3);
   expect(body.courses).toHaveLength(1);
   await expect(page.getByText(username)).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Hairdressing & Salon Care' }),
+    page.getByRole('heading', { name: 'Hair Dressing' }),
   ).toBeVisible();
   await expect(page.getByText('Next class')).toBeVisible();
   await expect(page.getByText('Hygiene checklist')).toBeVisible();
   await expect(
-    page.getByRole('meter', { name: 'M01 · Salon Safety & Hygiene' }),
+    page.getByRole('meter', {
+      name: 'M04 · Maintenance of safe and pleasant salon environment',
+    }),
   ).toHaveAttribute('aria-valuenow', '0');
   await expect(page.getByText('0 of 1')).toBeVisible();
 
@@ -92,21 +94,23 @@ test('the student dashboard shows next class, attendance, progress and assignmen
   await expect(page.locator('canvas[data-page="1"]')).toBeVisible();
   await page.getByRole('link', { name: 'Home' }).last().click();
   await expect(
-    page.getByRole('meter', { name: 'M01 · Salon Safety & Hygiene' }),
+    page.getByRole('meter', {
+      name: 'M04 · Maintenance of safe and pleasant salon environment',
+    }),
   ).toHaveAttribute('aria-valuenow', '100');
 });
 
 test('a student account shows registration numbers', async ({ page }) => {
-  await login(page, 'HSC2026A010');
+  await login(page, 'HD2026A010');
   await page.getByRole('link', { name: 'Account' }).last().click();
-  await expect(page.getByText('HSC2026A010').last()).toBeVisible();
+  await expect(page.getByText('HD2026A010').last()).toBeVisible();
   await expect(page.getByText('Registration')).toBeVisible();
 });
 
 test.describe('small phone (360px)', () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
-  for (const username of ['admin', 'teacher', 'HSC2026A011']) {
+  for (const username of ['admin', 'teacher', 'HD2026A011']) {
     test(`${username} dashboard fits and is easy to tap`, async ({ page }) => {
       await loadDashboard(page, username);
       await expect(

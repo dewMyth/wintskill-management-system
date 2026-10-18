@@ -19,7 +19,7 @@ pnpm --filter api db:seed
 pnpm --filter e2e exec playwright install chromium   # first time only
 ```
 
-Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must change password first), students `HSC2026A001`–`HSC2026A030` (`HSC2026A001` is also in BTC).
+Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must change password first), students `HD2026A001`–`HD2026A030` (`HD2026A001` is also in BT).
 
 ## Commands
 
@@ -32,4 +32,5 @@ Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must ch
 | `pnpm test:e2e` | API e2e (needs local Supabase) + Playwright, mobile + desktop |
 | `pnpm --filter api db:migrate` | Create/apply Prisma migrations |
 | `pnpm --filter api db:seed` | Replace local data with the seed |
+| `pnpm --filter api db:seed:courses` | Add the academy's courses from `apps/api/prisma/courses.ts` (skips existing codes; safe in production) |
 | `pnpm --filter api db:reset` | Drop and recreate the local database, then seed |

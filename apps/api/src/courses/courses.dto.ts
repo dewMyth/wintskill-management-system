@@ -5,12 +5,15 @@ import {
   IsBoolean,
   IsEnum,
   IsISO8601,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   Matches,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
 import { ToUpperCase, Trim } from '../common/transforms.js';
 import { BatchStatus } from '../generated/prisma/enums.js';
@@ -18,7 +21,7 @@ import { BATCH_CODE } from './batch-code.js';
 
 export class CreateCourseDto {
   @ToUpperCase()
-  @Matches(/^[A-Z]{2,6}$/, { message: 'code must be 2–6 letters, e.g. HSC' })
+  @Matches(/^[A-Z]{2,6}$/, { message: 'code must be 2–6 letters, e.g. HD' })
   code: string;
 
   @Trim()
@@ -55,6 +58,13 @@ export class CreateModuleDto {
   @IsNotEmpty()
   @MaxLength(120)
   title: string;
+
+  /** Curriculum duration; null where the curriculum does not give one. */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(999)
+  hours?: number | null;
 }
 
 export class UpdateModuleDto extends PartialType(CreateModuleDto) {}

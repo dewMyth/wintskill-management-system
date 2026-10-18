@@ -19,6 +19,10 @@ const schema = z.object({
     .toUpperCase()
     .regex(/^[A-Z0-9-]{1,10}$/, 'Up to 10 letters, digits or dashes, e.g. M01'),
   title: z.string().trim().min(1, 'Enter the module title').max(120),
+  hours: z
+    .string()
+    .trim()
+    .regex(/^([1-9]\d{0,2})?$/, 'Whole hours from 1 to 999, or leave empty'),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -48,10 +52,12 @@ export function ModuleFormDialog({
       form.reset({
         code: module?.code ?? suggestedCode ?? '',
         title: module?.title ?? '',
+        hours: module?.hours?.toString() ?? '',
       });
   }, [open, module, suggestedCode, form]);
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async ({ hours, ...rest }: FormValues) => {
+    const values = { ...rest, hours: hours ? Number(hours) : null };
     const result = module
       ? await updateModule({ courseId, id: module.id, ...values })
       : await createModule({ courseId, ...values });
@@ -87,6 +93,16 @@ export function ModuleFormDialog({
         label="Module title"
         error={errors.title}
         {...form.register('title')}
+      />
+      <TextField
+        id="module-hours"
+        label="Duration (hours)"
+        description="Optional, from the curriculum."
+        inputMode="numeric"
+        maxLength={3}
+        className="h-11"
+        error={errors.hours}
+        {...form.register('hours')}
       />
     </FormDialog>
   );

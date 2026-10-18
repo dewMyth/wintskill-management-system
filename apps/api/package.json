@@ -19,6 +19,7 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:seed:courses": "tsx prisma/seed-courses.ts",
     "db:reset": "prisma migrate reset --force && prisma db seed"
   },
   "dependencies": {

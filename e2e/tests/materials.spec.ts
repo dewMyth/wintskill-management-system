@@ -30,8 +30,8 @@ test('a teacher uploads, renames and deletes a PDF', async ({ page }) => {
   const title = `Notes ${randomDigits(5)}`;
   await openMaterials(page, 'teacher');
   await page.getByLabel('Course').click();
-  await page.getByRole('option', { name: /BTC/ }).click();
-  const card = moduleCard(page, 'Skin Care Basics');
+  await page.getByRole('option', { name: /BT/ }).click();
+  const card = moduleCard(page, 'Skin analysis');
   await card.getByRole('button', { name: 'Material' }).click();
 
   const dialog = page.getByRole('dialog');
@@ -67,8 +67,8 @@ test('a teacher uploads, renames and deletes a PDF', async ({ page }) => {
 
 test('a file pretending to be a PDF is rejected', async ({ page }) => {
   await openMaterials(page, 'admin');
-  await moduleCard(page, 'Skin Care Basics')
-    .or(moduleCard(page, 'Salon Safety'))
+  await moduleCard(page, 'Skin analysis')
+    .or(moduleCard(page, 'pleasant salon environment'))
     .first()
     .getByRole('button', { name: 'Material' })
     .click();
@@ -89,7 +89,7 @@ test('a student views a material: watermarked, no saving or printing, paused in 
 }, testInfo) => {
   // Each project uses its own student, so the "viewed" tick starts unticked.
   const username =
-    testInfo.project.name === 'mobile' ? 'HSC2026A002' : 'HSC2026A003';
+    testInfo.project.name === 'mobile' ? 'HD2026A002' : 'HD2026A003';
   await openMaterials(page, username, 'Learn');
   const handout = page.getByRole('link', { name: /Week 1 handout/ });
   await expect(handout.getByLabel('Viewed')).toHaveCount(0);
@@ -156,9 +156,9 @@ test('a student views a material: watermarked, no saving or printing, paused in 
 });
 
 test('students see assignments but no upload controls', async ({ page }) => {
-  await openMaterials(page, 'HSC2026A001', 'Learn');
+  await openMaterials(page, 'HD2026A001', 'Learn');
   await page.getByLabel('Course').click(); // enrolled in two courses
-  await page.getByRole('option', { name: /HSC/ }).click();
+  await page.getByRole('option', { name: /HD/ }).click();
   await expect(page.getByText('Hygiene checklist')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Material' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Delete|Rename/ })).toHaveCount(
@@ -170,7 +170,7 @@ test.describe('small phone (360px)', () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
   test('learning pages fit and are easy to tap', async ({ page }) => {
-    await openMaterials(page, 'HSC2026A002', 'Learn');
+    await openMaterials(page, 'HD2026A002', 'Learn');
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
     await page.getByRole('link', { name: /Week 1 handout/ }).click();

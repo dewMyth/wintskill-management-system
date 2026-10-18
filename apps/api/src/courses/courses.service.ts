@@ -89,6 +89,7 @@ export class CoursesService {
           courseId,
           code: dto.code,
           title: dto.title,
+          hours: dto.hours,
           sortOrder: (_max.sortOrder ?? -1) + 1,
         },
       }),

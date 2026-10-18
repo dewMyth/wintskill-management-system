@@ -5,7 +5,7 @@ test.describe('login', () => {
   for (const [username, home] of [
     ['admin', '/admin'],
     ['teacher', '/teacher'],
-    ['hsc2026a001', '/student'], // registration numbers work in any letter case
+    ['hd2026a001', '/student'], // registration numbers work in any letter case
   ]) {
     test(`${username} lands on ${home}`, async ({ page }) => {
       await login(page, username);
@@ -45,7 +45,7 @@ test.describe('access', () => {
   });
 
   test('a student cannot open admin pages', async ({ page }) => {
-    await login(page, 'HSC2026A002');
+    await login(page, 'HD2026A002');
     await expect(page).toHaveURL('/student');
     await page.goto('/admin');
     await expect(page).toHaveURL('/student');

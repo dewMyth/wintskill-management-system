@@ -333,7 +333,7 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - Multi-stage `Dockerfile`: build web + api, run `node apps/api/dist/main` (production deps only)
 - NestJS serves `apps/web/dist` for every non-`/api` route (SPA fallback)
 - Railway service settings: pre-deploy command `pnpm --filter api prisma migrate deploy`, health check `/api/v1/health`, env vars from §1 (the `VITE_*` ones as build args)
-- Production Supabase project: create private buckets `avatars` and `materials`, then run the seed once to create the first admin account only
+- Production Supabase project: create private buckets `avatars` and `materials`, then run the seed once to create the first admin account only, and `pnpm --filter api db:seed:courses` to create the real courses and modules (`prisma/courses.ts`; skips courses that already exist)
 - Custom domain + HTTPS (Railway-managed)
 
 **Success criteria**

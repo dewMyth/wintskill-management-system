@@ -33,7 +33,7 @@ async function addClass(
   await page.getByRole('button', { name: 'Add class' }).click();
   const dialog = page.getByRole('dialog');
   await pick(page, 'Course intake', c.intake);
-  await pick(page, 'Module (optional)', /M01/);
+  await pick(page, 'Module (optional)', /^M01 /);
   await pick(page, 'Teacher', c.teacher);
   await dialog.getByLabel('Date').fill(c.date);
   await dialog.getByLabel('Starts').fill(c.start);
@@ -66,7 +66,7 @@ test('admin adds a weekly class that appears in the calendar', async ({
       : ['18:00', '19:00'];
   await openCalendar(page, 'admin');
   await addClass(page, {
-    intake: /HSC 2026A/,
+    intake: /HD 2026A/,
     teacher: 'Nimali Perera',
     date: today(),
     start,
@@ -83,7 +83,7 @@ test('a double-booked teacher is flagged', async ({ page }, testInfo) => {
   const date = testInfo.project.name === 'mobile' ? '2031-05-05' : '2031-05-06';
   await openCalendar(page, 'admin');
   await addClass(page, {
-    intake: /HSC 2026A/,
+    intake: /HD 2026A/,
     teacher: 'Ruwani Jayawardena',
     date,
     start: '10:00',
@@ -91,14 +91,14 @@ test('a double-booked teacher is flagged', async ({ page }, testInfo) => {
   });
   await expect(page.getByText('Class added')).toBeVisible();
   await addClass(page, {
-    intake: /BTC 2026A/,
+    intake: /BT 2026A/,
     teacher: 'Ruwani Jayawardena',
     date,
     start: '11:00',
     end: '13:00',
   });
   await expect(
-    page.getByText('Ruwani Jayawardena is already teaching HSC 2026A then'),
+    page.getByText('Ruwani Jayawardena is already teaching HD 2026A then'),
   ).toBeVisible();
 });
 
@@ -112,7 +112,7 @@ test('admin drags a class to a new time on desktop', async ({
   await openCalendar(page, 'admin');
   const event = page
     .locator('.fc-timegrid-event')
-    .filter({ hasText: 'Hair Cutting Fundamentals' })
+    .filter({ hasText: 'Cutting and setting ladies hair' })
     .first();
   const box = (await event.boundingBox())!;
   const slot = (await page.locator('.fc-timegrid-slot').first().boundingBox())!
@@ -153,18 +153,22 @@ test('an academy holiday shows for students', async ({ page, browser }) => {
   await expect(page.getByText('Event added')).toBeVisible();
 
   const student = await (await browser.newContext()).newPage();
-  await openCalendar(student, 'HSC2026A002');
+  await openCalendar(student, 'HD2026A002');
   await expect(student.getByText(title)).toBeVisible();
 });
 
 test('students see only their own intake, read-only', async ({ page }) => {
-  await openCalendar(page, 'HSC2026A002');
+  await openCalendar(page, 'HD2026A002');
   await expect(page.getByRole('button', { name: 'Add class' })).toHaveCount(0);
-  await expect(page.getByText(/Salon Safety & Hygiene/).first()).toBeVisible();
-  await expect(page.getByText(/Skin Care Basics/)).toHaveCount(0); // BTC only
+  await expect(
+    page
+      .getByText(/Maintenance of safe and pleasant salon environment/)
+      .first(),
+  ).toBeVisible();
+  await expect(page.getByText(/Skin analysis/)).toHaveCount(0); // BT only
 
   await page
-    .getByText(/Salon Safety & Hygiene/)
+    .getByText(/Maintenance of safe and pleasant salon environment/)
     .first()
     .click();
   const dialog = page.getByRole('dialog');
@@ -177,9 +181,9 @@ test('students see only their own intake, read-only', async ({ page }) => {
 
 test('teachers see their classes without their own name', async ({ page }) => {
   await openCalendar(page, 'teacher');
-  await expect(page.getByText(/Skin Care Basics/).first()).toBeVisible();
+  await expect(page.getByText(/Skin analysis/).first()).toBeVisible();
   await page
-    .getByText(/Skin Care Basics/)
+    .getByText(/Skin analysis/)
     .first()
     .click();
   await expect(page.getByRole('dialog')).toContainText('Training salon');

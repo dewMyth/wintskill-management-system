@@ -99,12 +99,12 @@ test('admin sets up a course with modules and an intake', async ({ page }) => {
 test('the back link returns to the course list', async ({ page }) => {
   await openCourses(page);
   await page
-    .getByRole('button', { name: /HSC/ })
-    .or(page.getByRole('row', { name: /HSC/ }))
+    .getByRole('button', { name: /HD/ })
+    .or(page.getByRole('row', { name: /HD/ }))
     .first()
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Hairdressing & Salon Care' }),
+    page.getByRole('heading', { name: 'Hair Dressing' }),
   ).toBeVisible();
   await page
     .getByRole('link', { name: 'Courses', exact: true })
@@ -115,17 +115,17 @@ test('the back link returns to the course list', async ({ page }) => {
 
 test('duplicate course codes are explained', async ({ page }) => {
   await openCourses(page);
-  await createCourse(page, 'HSC', 'Another Hairdressing');
+  await createCourse(page, 'HD', 'Another Hairdressing');
   await expect(page.getByRole('dialog').getByRole('alert')).toHaveText(
-    'Course code HSC is already used',
+    'Course code HD is already used',
   );
 });
 
 test('a course with students cannot be deleted', async ({ page }) => {
   await openCourses(page);
   await page
-    .getByRole('button', { name: /HSC/ })
-    .or(page.getByRole('row', { name: /HSC/ }))
+    .getByRole('button', { name: /HD/ })
+    .or(page.getByRole('row', { name: /HD/ }))
     .first()
     .click();
   await page.getByRole('button', { name: 'More course actions' }).click();
@@ -154,14 +154,17 @@ test.describe('small phone (360px)', () => {
     await openCourses(page);
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
-    await page.getByRole('button', { name: /HSC/ }).click();
+    await page.getByRole('button', { name: /HD/ }).click();
     await expect(
-      page.getByRole('heading', { name: 'Hairdressing & Salon Care' }),
+      page.getByRole('heading', { name: 'Hair Dressing' }),
     ).toBeVisible();
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
     await page.getByRole('tab', { name: /Modules/ }).click();
-    await expect(page.getByText('Hair Cutting Fundamentals')).toBeVisible();
+    await expect(page.getByText('17 modules · 514 hours')).toBeVisible();
+    await expect(
+      page.getByRole('listitem').filter({ hasText: 'M07' }),
+    ).toContainText('Cutting and setting ladies hair · 90 h');
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
   });

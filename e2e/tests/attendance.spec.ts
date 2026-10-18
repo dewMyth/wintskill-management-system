@@ -26,7 +26,7 @@ test('a teacher marks a 30-student register on a phone in under 30 seconds', asy
     'phone flow; desktop marks a different class',
   );
   await openAttendance(page, 'teacher');
-  await lastWeeks(page, 'Salon Safety').click();
+  await lastWeeks(page, 'pleasant salon environment').click();
   await expect(page.getByRole('button', { name: /: Present$/ })).toHaveCount(
     30,
   );
@@ -43,8 +43,10 @@ test('a teacher marks a 30-student register on a phone in under 30 seconds', asy
   expect(Date.now() - started).toBeLessThan(30_000);
 
   // Back on the list the class shows its count; reopening shows the saved register.
-  await expect(lastWeeks(page, 'Salon Safety')).toContainText('27/30 present');
-  await lastWeeks(page, 'Salon Safety').click();
+  await expect(lastWeeks(page, 'pleasant salon environment')).toContainText(
+    '27/30 present',
+  );
+  await lastWeeks(page, 'pleasant salon environment').click();
   await expect(
     page.getByRole('button', { name: 'Hiruni Perera: Absent' }),
   ).toBeVisible();
@@ -67,7 +69,7 @@ test('an admin marks a class and downloads the intake report', async ({
     'desktop flow; mobile marks a different class',
   );
   await openAttendance(page, 'admin');
-  await lastWeeks(page, 'Hair Cutting').click();
+  await lastWeeks(page, 'Cutting and setting ladies hair').click();
   await page
     .getByRole('button', { name: 'Kavindi Sewwandi Silva: Present' })
     .click();
@@ -76,25 +78,26 @@ test('an admin marks a class and downloads the intake report', async ({
 
   await page.getByRole('tab', { name: 'Reports' }).click();
   await page.getByLabel('Report for intake').click();
-  await page.getByRole('option', { name: /HSC 2026A/ }).click();
-  // Columns: Student, Attendance, P/L/A/E, M01, M02, M03. Only this test marks M02 (the phone test marks M01).
-  const m02 = page
+  await page.getByRole('option', { name: /HD 2026A/ }).click();
+  // Columns: Student, Attendance, P/L/A/E, then every module (M01–M14, BM01–BM03).
+  // Only this test marks M07 (the phone test marks M04).
+  const m07 = page
     .getByRole('row', { name: /Kavindi Sewwandi Silva/ })
     .getByRole('cell')
-    .nth(4);
-  await expect(m02).toHaveText('0%');
-  await expect(m02.locator('span')).toHaveClass(/text-destructive/);
+    .nth(9);
+  await expect(m07).toHaveText('0%');
+  await expect(m07.locator('span')).toHaveClass(/text-destructive/);
 
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download CSV' }).click();
   const file = await download;
-  expect(file.suggestedFilename()).toBe('attendance-HSC2026A.csv');
+  expect(file.suggestedFilename()).toBe('attendance-HD2026A.csv');
   const csv = await readFile(await file.path(), 'utf8');
   expect(csv).toContain(
-    'Registration no,Name,Enrollment,Present,Late,Absent,Excused,Attendance %,M01 %,M02 %,M03 %',
+    'Registration no,Name,Enrollment,Present,Late,Absent,Excused,Attendance %,M01 %,M02 %,M03 %,M04 %,M05 %,M06 %,M07 %',
   );
   expect(csv).toMatch(
-    /HSC2026A001,Kavindi Sewwandi Silva,ACTIVE,\d+,\d+,[1-9]\d*,\d+,[\d.]*,[\d.]*,0,/,
+    /HD2026A001,Kavindi Sewwandi Silva,ACTIVE,\d+,\d+,[1-9]\d*,\d+,[\d.]*,(?:[\d.]*,){6}0,/,
   );
 });
 
@@ -107,7 +110,7 @@ test('a teacher opens the register from the calendar', async ({ page }) => {
     .first()
     .click();
   await page
-    .getByText(/Skin Care Basics/)
+    .getByText(/Skin analysis/)
     .first()
     .click();
   await page.getByRole('link', { name: 'Take attendance' }).click();
@@ -118,7 +121,7 @@ test('a teacher opens the register from the calendar', async ({ page }) => {
 });
 
 test('students have no attendance pages', async ({ page }) => {
-  await login(page, 'HSC2026A002');
+  await login(page, 'HD2026A002');
   await expect(page).toHaveURL('/student');
   await expect(page.getByRole('link', { name: 'Attendance' })).toHaveCount(0);
   await page.goto('/teacher/attendance');
@@ -132,7 +135,7 @@ test.describe('small phone (360px)', () => {
     await openAttendance(page, 'teacher');
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
-    await lastWeeks(page, 'Skin Care').click();
+    await lastWeeks(page, 'Skin analysis').click();
     await expect(
       page.getByRole('button', { name: /Kavindi Sewwandi Silva/ }),
     ).toBeVisible();

@@ -10,7 +10,7 @@ import type {
 } from './types';
 
 type CourseInput = { name: string; description?: string };
-type ModuleInput = { code: string; title: string };
+type ModuleInput = { code: string; title: string; hours: number | null };
 type BatchInput = { name?: string; startDate: string; endDate?: string | null };
 
 const listTag = { type: 'Course' as const, id: 'LIST' };

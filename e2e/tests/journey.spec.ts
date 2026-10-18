@@ -155,7 +155,7 @@ test('from a new course to a student reading their handout', async ({
   const handoutUrl = new URL(student.url()).pathname;
 
   // A student of another course cannot open it, even with the link.
-  const outsider = await signedIn(browser, 'HSC2026A015');
+  const outsider = await signedIn(browser, 'HD2026A015');
   await outsider.goto(handoutUrl);
   await expect(outsider.getByText('Could not load this page')).toBeVisible();
   await expect(outsider.locator('canvas')).toHaveCount(0);

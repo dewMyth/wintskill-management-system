@@ -18,6 +18,7 @@ export interface CourseModule {
   courseId: string;
   code: string;
   title: string;
+  hours: number | null;
   sortOrder: number;
 }
 

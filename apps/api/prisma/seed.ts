@@ -1,7 +1,8 @@
 /**
  * Local development seed. Wipes app data and seed users, then creates:
- * admin + teacher, two courses with modules and batches, and three students
- * (the first one enrolled in both courses). Every password is SEED_PASSWORD.
+ * admin + teacher, the academy's real courses (courses.ts) with intakes for
+ * Hair Dressing and Beautician, and 30 Hair Dressing students (the first one
+ * also enrolled in Beautician). Every password is SEED_PASSWORD.
  */
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
@@ -12,6 +13,7 @@ import {
   type Role,
 } from '../src/generated/prisma/client.js';
 import { createPrismaAdapter } from '../src/prisma/adapter.js';
+import { courses, type CourseData } from './courses.js';
 import { samplePdf } from './sample-pdf.js';
 
 if (process.env.NODE_ENV === 'production')
@@ -98,35 +100,35 @@ async function createAccount(
   });
 }
 
+/** Creates the course; with `batchStart`, also an active 2026A intake. */
 async function createCourse(
-  code: string,
-  name: string,
-  modules: string[],
-  batchStart: string,
+  { code, modules, ...course }: CourseData,
+  batchStart?: string,
 ) {
-  return prisma.course.create({
+  const created = await prisma.course.create({
     data: {
       code,
-      name,
+      ...course,
       modules: {
-        create: modules.map((title, i) => ({
-          code: `M${String(i + 1).padStart(2, '0')}`,
-          title,
-          sortOrder: i,
-        })),
+        create: modules.map((m, sortOrder) => ({ ...m, sortOrder })),
       },
-      batches: {
-        create: {
-          code: '2026A',
-          name: `${code} 2026 Intake A`,
-          startDate: new Date(batchStart),
-          status: 'ACTIVE',
-          counter: { create: {} },
-        },
-      },
+      batches: batchStart
+        ? {
+            create: {
+              code: '2026A',
+              name: `${code} 2026 Intake A`,
+              startDate: new Date(batchStart),
+              status: 'ACTIVE',
+              counter: { create: {} },
+            },
+          }
+        : undefined,
     },
-    include: { batches: true, modules: { orderBy: { sortOrder: 'asc' } } },
+    include: { batches: true, modules: true },
   });
+  const module = (moduleCode: string) =>
+    created.modules.find((m) => m.code === moduleCode)!;
+  return { ...created, module };
 }
 
 async function createStudent(
@@ -175,22 +177,23 @@ await createAccount(
   true,
 );
 
-const hsc = await createCourse(
-  'HSC',
-  'Hairdressing & Salon Care',
-  ['Salon Safety & Hygiene', 'Hair Cutting Fundamentals', 'Hair Colouring'],
-  '2026-09-01',
-);
-const btc = await createCourse(
-  'BTC',
-  'Beauty Therapy Certificate',
-  ['Skin Care Basics', 'Make-up Application'],
-  '2026-10-01',
-);
-const [hscBatch] = hsc.batches;
-const [btcBatch] = btc.batches;
+const intakeStarts: Record<string, string> = {
+  HD: '2026-09-01',
+  BT: '2026-10-01',
+};
+const created = [];
+for (const course of courses)
+  created.push(await createCourse(course, intakeStarts[course.code]));
+const hd = created.find((c) => c.code === 'HD')!;
+const bt = created.find((c) => c.code === 'BT')!;
+const [hdBatch] = hd.batches;
+const [btBatch] = bt.batches;
+// Seeded classes, materials and the assignment use these modules.
+const salonModule = hd.module('M04'); // Maintenance of safe and pleasant salon environment
+const cuttingModule = hd.module('M07'); // Cutting and setting ladies hair
+const skinModule = bt.module('M07'); // Skin analysis
 
-// 27 more HSC students (HSC2026A004–030), so a register has a realistic 30 names.
+// 27 more HD students (HD2026A004–030), so a register has a realistic 30 names.
 // Created first, so the three named students below stay at the top of the student list.
 const firstNames = [
   'Hiruni',
@@ -206,7 +209,7 @@ const firstNames = [
 const lastNames = ['Perera', 'Fernando', 'Wijesinghe'];
 for (let i = 0; i < 27; i++) {
   const n = i + 4;
-  const registrationNo = `HSC2026A${String(n).padStart(3, '0')}`;
+  const registrationNo = `HD2026A${String(n).padStart(3, '0')}`;
   const first = firstNames[i % firstNames.length];
   const last = lastNames[Math.floor(i / firstNames.length)];
   const student = await createStudent(
@@ -222,11 +225,11 @@ for (let i = 0; i < 27; i++) {
       address: 'Kottawa',
     },
   );
-  await enroll(student.id, hscBatch.id, registrationNo);
+  await enroll(student.id, hdBatch.id, registrationNo);
 }
 
 const kavindi = await createStudent(
-  'HSC2026A001',
+  'HD2026A001',
   { fullName: 'Kavindi Sewwandi Silva', phone: '0711111111' },
   {
     nameWithInitials: 'K. S. Silva',
@@ -251,7 +254,7 @@ const kavindi = await createStudent(
   },
 );
 const tharushi = await createStudent(
-  'HSC2026A002',
+  'HD2026A002',
   { fullName: 'Tharushi Nethmini Fernando', phone: '0713333333' },
   {
     nameWithInitials: 'T. N. Fernando',
@@ -261,7 +264,7 @@ const tharushi = await createStudent(
   },
 );
 const dilini = await createStudent(
-  'HSC2026A003',
+  'HD2026A003',
   { fullName: 'Dilini Madushika Jayasinghe', phone: '0714444444' },
   {
     nameWithInitials: 'D. M. Jayasinghe',
@@ -271,10 +274,10 @@ const dilini = await createStudent(
   },
 );
 
-await enroll(kavindi.id, hscBatch.id, 'HSC2026A001');
-await enroll(tharushi.id, hscBatch.id, 'HSC2026A002');
-await enroll(dilini.id, hscBatch.id, 'HSC2026A003');
-await enroll(kavindi.id, btcBatch.id, 'BTC2026A001');
+await enroll(kavindi.id, hdBatch.id, 'HD2026A001');
+await enroll(tharushi.id, hdBatch.id, 'HD2026A002');
+await enroll(dilini.id, hdBatch.id, 'HD2026A003');
+await enroll(kavindi.id, btBatch.id, 'BT2026A001');
 
 // Calendar for this week and next (Sri Lanka time, +05:30), so calendars are not empty.
 const DAY = 24 * 60 * 60 * 1000;
@@ -296,22 +299,22 @@ await prisma.classSession.createMany({
   data: [-7, 0, 7]
     .flatMap((week) => [
       {
-        batchId: hscBatch.id,
-        moduleId: hsc.modules[0].id,
+        batchId: hdBatch.id,
+        moduleId: salonModule.id,
         day: week,
         from: '09:00',
         to: '12:00',
       },
       {
-        batchId: btcBatch.id,
-        moduleId: btc.modules[0].id,
+        batchId: btBatch.id,
+        moduleId: skinModule.id,
         day: week + 1,
         from: '13:00',
         to: '16:00',
       },
       {
-        batchId: hscBatch.id,
-        moduleId: hsc.modules[1].id,
+        batchId: hdBatch.id,
+        moduleId: cuttingModule.id,
         day: week + 2,
         from: '09:00',
         to: '12:00',
@@ -325,17 +328,21 @@ await prisma.classSession.createMany({
       venue: 'Training salon',
     })),
 });
-// Course materials: a handout in HSC module 1, plus an assignment.
-const handoutPath = `${hsc.id}/${hsc.modules[0].id}/${crypto.randomUUID()}.pdf`;
+// Course materials: a handout in the HD salon module, plus an assignment.
+const handoutPath = `${hd.id}/${salonModule.id}/${crypto.randomUUID()}.pdf`;
 const { error: uploadError } = await supabase.storage
   .from('materials')
-  .upload(handoutPath, samplePdf('Salon Safety & Hygiene - Week 1'), {
-    contentType: 'application/pdf',
-  });
+  .upload(
+    handoutPath,
+    samplePdf('Safe and pleasant salon environment - Week 1'),
+    {
+      contentType: 'application/pdf',
+    },
+  );
 if (uploadError) throw uploadError;
 await prisma.material.create({
   data: {
-    moduleId: hsc.modules[0].id,
+    moduleId: salonModule.id,
     title: 'Week 1 handout: salon safety',
     kind: 'PDF',
     storagePath: handoutPath,
@@ -344,7 +351,7 @@ await prisma.material.create({
 });
 await prisma.assignment.create({
   data: {
-    moduleId: hsc.modules[0].id,
+    moduleId: salonModule.id,
     title: 'Hygiene checklist',
     description: 'List ten hygiene checks you do before every client.',
     dueAt: at(14, '09:00'),
@@ -355,8 +362,8 @@ await prisma.assignment.create({
 await prisma.calendarEvent.createMany({
   data: [
     {
-      batchId: hscBatch.id,
-      title: 'Module 1 practical exam',
+      batchId: hdBatch.id,
+      title: 'Module M04 practical exam',
       type: 'EXAM',
       startsAt: at(10, '09:00'),
       endsAt: at(10, '11:00'),
@@ -373,5 +380,5 @@ await prisma.calendarEvent.createMany({
 
 await prisma.$disconnect();
 console.log(
-  `Seeded. Users: admin, teacher, newteacher (must change password), HSC2026A001-030. Password: ${password}`,
+  `Seeded. Users: admin, teacher, newteacher (must change password), HD2026A001-030. Password: ${password}`,
 );

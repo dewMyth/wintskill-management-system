@@ -22,6 +22,7 @@ import type { CourseDetail, CourseModule } from './types';
 
 export function ModulesSection({ course }: { course: CourseDetail }) {
   const { modules } = course;
+  const totalHours = modules.reduce((sum, m) => sum + (m.hours ?? 0), 0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<CourseModule>();
   const [deleting, setDeleting] = useState<CourseModule>();
@@ -62,7 +63,15 @@ export function ModulesSection({ course }: { course: CourseDetail }) {
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex justify-end">{modules.length > 0 && addButton}</div>
+      {modules.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            {modules.length} module{modules.length === 1 ? '' : 's'}
+            {totalHours > 0 && ` · ${totalHours} hours`}
+          </p>
+          {addButton}
+        </div>
+      )}
       {modules.length === 0 ? (
         <EmptyState
           icon={LayersIcon}
@@ -81,7 +90,15 @@ export function ModulesSection({ course }: { course: CourseDetail }) {
                 <Badge variant="outline" className="font-mono">
                   {module.code}
                 </Badge>
-                <span className="min-w-0 break-words">{module.title}</span>
+                <span className="min-w-0 break-words">
+                  {module.title}
+                  {module.hours != null && (
+                    <span className="text-sm whitespace-nowrap text-muted-foreground">
+                      {' '}
+                      · {module.hours} h
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex justify-end">
                 <Button
