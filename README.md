@@ -34,4 +34,5 @@ Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must ch
 | `pnpm --filter api db:seed` | Replace local data with the seed |
 | `pnpm --filter api db:seed:courses` | Add the academy's courses from `apps/api/prisma/courses.ts` (skips existing codes; safe in production) |
 | `pnpm --filter api db:create-admin <username> "<full name>" [phone]` | Create one admin login with a temporary password (for a fresh production database) |
+| `pnpm --filter api db:sample add` / `remove` | Add removable sample data next to real data (logins share one printed password); `remove` before going live |
 | `pnpm --filter api db:reset` | Drop and recreate the local database, then seed |
