@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "lighthouse": "node lighthouse.mjs"
+    "lighthouse": "node lighthouse.mjs",
+    "smoke": "playwright test --config playwright.smoke.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

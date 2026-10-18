@@ -36,3 +36,12 @@ Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must ch
 | `pnpm --filter api db:create-admin <username> "<full name>" [phone]` | Create one admin login with a temporary password (for a fresh production database) |
 | `pnpm --filter api db:sample add` / `remove` | Add removable sample data next to real data (logins share one printed password); `remove` before going live |
 | `pnpm --filter api db:reset` | Drop and recreate the local database, then seed |
+
+## Deployment (Railway)
+
+One Docker image (`Dockerfile`): the API also serves the built web app. Railway project `wintskill-sms`, service `wintskill-sms`, deploys every push to **`release/0.1.0`** (`railway.json`: migrations run before each release, health check `/api/v1/health`).
+
+- Variables come from `apps/api/.env` (not `PORT`) and `apps/web/.env` (`VITE_*`, used at build time).
+- Hosted Supabase: private buckets `avatars` and `materials`; raise Auth rate limits (Authentication → Rate Limits: sign-ins ~150 / 5 min) because a class shares one Wi-Fi IP.
+- One-off commands in the deployed service: `railway ssh -- pnpm db:create-admin <username> "<full name>"`, `railway ssh -- pnpm db:seed:courses`.
+- Smoke test (read-only): `BASE_URL=https://wintskill-sms-production.up.railway.app pnpm --filter e2e smoke` (add `SMOKE_USERNAME` / `SMOKE_PASSWORD` to also sign in).
