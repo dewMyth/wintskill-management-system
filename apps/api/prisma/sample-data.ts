@@ -4,10 +4,14 @@
  *   pnpm --filter api db:sample add      adds it; prints the shared password once
  *   pnpm --filter api db:sample remove   deletes it again, before going live
  *
+ *   pnpm --filter api db:sample legacy           lists old-format intakes (2026A) and students (HD2026A001); changes nothing
+ *   pnpm --filter api db:sample remove --legacy  also deletes those
+ *
  * Unlike the dev seed it never deletes real data and needs the real courses
  * (db:seed:courses). Everything it adds is recognisable, so `remove` finds it:
- * staff usernames start with `sample.`, intakes are named `[Sample] …` with
- * 2020 codes (WINT/HD/2020/99/001 …), and loose events and files are titled `[Sample] …`.
+ * staff usernames start with `sample.`, intakes are named `[Sample] …`, and loose
+ * events and files are titled `[Sample] …`. Sample intakes get real codes from their
+ * start year (2026/01 …), so students get real registration numbers (WINT/HD/2026/01/001).
  * `remove` also deletes anything else in the sample intakes or made by the
  * sample staff, e.g. students you registered into a sample intake while testing.
  */
@@ -15,6 +19,7 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import { generateTemporaryPassword } from '../src/accounts/temporary-password.js';
 import { internalEmail } from '../src/auth/internal-email.js';
+import { nextBatchCode } from '../src/courses/batch-code.js';
 import {
   PrismaClient,
   type AttendanceStatus,
@@ -26,8 +31,14 @@ import { samplePdf } from './sample-pdf.js';
 
 const TAG = '[Sample]';
 const STAFF_PREFIX = 'sample.';
-const SAMPLE_LOGIN =
-  /^(sample\.[^@]+|wint\.[a-z]{2,6}\.2020\.9[89]\.\d{3})@users\.wintskill\.local$/;
+/** Sample staff logins. */
+const SAMPLE_LOGIN = /^sample\.[^@]+@users\.wintskill\.local$/;
+/** Student logins, new (wint.hd.2026.01.001) and old (hd2026a001) format. */
+const STUDENT_LOGIN =
+  /^(wint\.[a-z]{2,6}\.\d{4}\.\d{2}\.\d+|[a-z]{2,6}\d{4}[a-z]\d+)@users\.wintskill\.local$/;
+/** Intake codes and student usernames in the current format. */
+const BATCH_CODE = /^\d{4}\/\d{2}$/;
+const USERNAME_PREFIX = 'WINT/';
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
   'base64',
@@ -80,6 +91,9 @@ async function add() {
   const hd = course('HD');
   const bt = course('BT');
   const bd = course('BD');
+  const bb = course('BB');
+  const clv = course('CLV');
+  const clvi = course('CLVI');
 
   const password = process.env.SAMPLE_PASSWORD ?? generateTemporaryPassword(16);
 
@@ -157,13 +171,23 @@ async function add() {
   const at = (dayOffset: number, time: string) =>
     new Date(`${date(dayOffset)}T${time}:00+05:30`);
 
-  const batch = (
+  /** Coded like the app does: the start year and the next intake number for that year. */
+  async function batch(
     courseId: string,
-    code: string,
     name: string,
     data: Omit<Prisma.BatchUncheckedCreateInput, 'courseId' | 'code' | 'name'>,
-  ) =>
-    prisma.batch.create({
+  ) {
+    const existing = await prisma.batch.findMany({
+      where: { courseId },
+      select: { code: true },
+    });
+    const year = new Date(data.startDate).getUTCFullYear();
+    const code = nextBatchCode(
+      year,
+      existing.map((b) => b.code),
+    );
+    if (!code) throw new Error(`No free intake code left for ${year}`);
+    return prisma.batch.create({
       data: {
         courseId,
         code,
@@ -172,22 +196,37 @@ async function add() {
         ...data,
       },
     });
-  const hdActive = await batch(hd.id, '2020/99', 'Hair Dressing intake', {
-    startDate: new Date(date(-42)),
-    endDate: new Date(date(140)),
-    status: 'ACTIVE',
-  });
-  const btActive = await batch(bt.id, '2020/99', 'Beautician intake', {
-    startDate: new Date(date(-21)),
-    status: 'ACTIVE',
-  });
-  const hdDone = await batch(hd.id, '2020/98', 'Hair Dressing 2025', {
+  }
+  // One or more for every course: running, finished last year and starting soon.
+  const hdDone = await batch(hd.id, 'Hair Dressing 2025', {
     startDate: new Date('2025-02-03'),
     endDate: new Date('2025-08-29'),
     status: 'COMPLETED',
   });
-  await batch(bd.id, '2020/99', 'Bridal Dressing intake', {
+  const hdActive = await batch(hd.id, 'Hair Dressing intake', {
+    startDate: new Date(date(-42)),
+    endDate: new Date(date(140)),
+    status: 'ACTIVE',
+  });
+  const btActive = await batch(bt.id, 'Beautician intake', {
+    startDate: new Date(date(-21)),
+    status: 'ACTIVE',
+  });
+  const bbActive = await batch(bb.id, 'Barbering intake', {
+    startDate: new Date(date(-14)),
+    endDate: new Date(date(70)),
+    status: 'ACTIVE',
+  });
+  const clvActive = await batch(clv.id, 'Cosmetology Level 5 intake', {
+    startDate: new Date(date(-28)),
+    status: 'ACTIVE',
+  });
+  await batch(bd.id, 'Bridal Dressing intake', {
     startDate: new Date(date(35)),
+    status: 'PLANNED',
+  });
+  await batch(clvi.id, 'Cosmetology Level 6 intake', {
+    startDate: new Date(date(63)),
     status: 'PLANNED',
   });
 
@@ -333,6 +372,16 @@ async function add() {
   for (let i = 0; i < 4; i++) {
     const s = await student(await nextRegNo(hdDone, 'HD'));
     doneEnrollments.push(await enroll(s.id, hdDone, 'HD', 'COMPLETED'));
+  }
+  const bbEnrollments = [];
+  for (let i = 0; i < 4; i++) {
+    const s = await student(await nextRegNo(bbActive, 'BB'));
+    bbEnrollments.push(await enroll(s.id, bbActive, 'BB'));
+  }
+  const clvEnrollments = [];
+  for (let i = 0; i < 3; i++) {
+    const s = await student(await nextRegNo(clvActive, 'CLV'));
+    clvEnrollments.push(await enroll(s.id, clvActive, 'CLV'));
   }
 
   // Timetable: three weeks back and two ahead. HD Mon + Wed mornings, BT Tue afternoons.
@@ -542,23 +591,67 @@ async function add() {
     `${es[0].registrationNo}–${es.at(-1)!.registrationNo}`;
   console.log(`Sample data added. Every sample login uses the password: ${password}
   Teachers: sample.teacher, sample.teacher2, sample.newteacher (must change password)
-  Students: ${regNos(hdEnrollments)} (${hdEnrollments[0].registrationNo} and ${hdEnrollments[1].registrationNo} also take Beautician), ${regNos(btEnrollments.slice(2))}, ${regNos(doneEnrollments)}
+  Students: ${regNos(hdEnrollments)} (${hdEnrollments[0].registrationNo} and ${hdEnrollments[1].registrationNo} also take Beautician), ${regNos(btEnrollments.slice(2))}, ${regNos(bbEnrollments)}, ${regNos(clvEnrollments)}, ${regNos(doneEnrollments)}
 Remove it all with: pnpm --filter api db:sample remove`);
 }
 
-async function remove() {
-  const batchIds = (
+/** Intakes and students in the old format (2026A, HD2026A001), from before WINT/ numbers. */
+async function findLegacy() {
+  const batches = (
     await prisma.batch.findMany({
-      where: { name: { startsWith: TAG } },
-      select: { id: true },
+      include: {
+        course: { select: { code: true } },
+        _count: { select: { enrollments: true } },
+      },
+      orderBy: [{ course: { code: 'asc' } }, { code: 'asc' }],
     })
-  ).map((b) => b.id);
+  ).filter((b) => !BATCH_CODE.test(b.code));
+  const students = await prisma.student.findMany({
+    where: { profile: { username: { not: { startsWith: USERNAME_PREFIX } } } },
+    include: {
+      profile: true,
+      enrollments: { select: { registrationNo: true } },
+    },
+    orderBy: { profile: { username: 'asc' } },
+  });
+  return { batches, students };
+}
+
+async function listLegacy() {
+  const { batches, students } = await findLegacy();
+  console.log(`Old-format intakes (${batches.length}):`);
+  for (const b of batches)
+    console.log(
+      `  ${b.course.code} ${b.code}  ${b.name}  (${b._count.enrollments} students)`,
+    );
+  console.log(`Old-format students (${students.length}):`);
+  for (const s of students)
+    console.log(
+      `  ${s.profile.username}  ${s.profile.fullName}  ${s.enrollments.map((e) => e.registrationNo).join(', ')}`,
+    );
+  console.log(
+    'Nothing was changed. Delete these with: pnpm --filter api db:sample remove --legacy',
+  );
+}
+
+async function remove(legacy: boolean) {
+  const old = legacy ? await findLegacy() : { batches: [], students: [] };
+  const batchIds = [
+    ...(
+      await prisma.batch.findMany({
+        where: { name: { startsWith: TAG } },
+        select: { id: true },
+      })
+    ).map((b) => b.id),
+    ...old.batches.map((b) => b.id),
+  ];
   const staff = await prisma.profile.findMany({
     where: { username: { startsWith: STAFF_PREFIX } },
   });
   const staffIds = staff.map((p) => p.id);
-  // Students in a sample intake who are not also in a real one.
-  const students = await prisma.student.findMany({
+  // Students in a sample (or old-format) intake who are not also in another one,
+  // plus, with --legacy, every student with an old-format username.
+  const inIntakes = await prisma.student.findMany({
     where: {
       enrollments: {
         some: { batchId: { in: batchIds } },
@@ -567,11 +660,16 @@ async function remove() {
     },
     include: { profile: true },
   });
-  // Student logins whose student record was never created (an interrupted `add`).
+  const students = [
+    ...inIntakes,
+    ...old.students.filter((s) => !inIntakes.some((i) => i.id === s.id)),
+  ];
+  // Student logins whose student record was never created (an interrupted `add` or registration).
   const halfMade = (
     await prisma.profile.findMany({ where: { role: 'STUDENT', student: null } })
-  ).filter((p) => SAMPLE_LOGIN.test(internalEmail(p.username)));
+  ).filter((p) => STUDENT_LOGIN.test(internalEmail(p.username)));
   const profiles = [...staff, ...students.map((s) => s.profile), ...halfMade];
+  const studentIds = students.map((s) => s.id);
   const byStaffOrTagged = {
     OR: [{ uploadedById: { in: staffIds } }, { title: { startsWith: TAG } }],
   };
@@ -580,12 +678,12 @@ async function remove() {
     ...(await prisma.assignment.findMany({ where: byStaffOrTagged })),
   ].flatMap((f) => (f.storagePath ? [f.storagePath] : []));
 
-  const studentIds = students.map((s) => s.id);
   const counts = await prisma.$transaction([
     prisma.attendance.deleteMany({
       where: {
         OR: [
           { enrollment: { batchId: { in: batchIds } } },
+          { enrollment: { studentId: { in: studentIds } } },
           { markedById: { in: staffIds } },
         ],
       },
@@ -618,7 +716,7 @@ async function remove() {
   const avatars = profiles.flatMap((p) => (p.avatarPath ? [p.avatarPath] : []));
   if (avatars.length) await supabase.storage.from('avatars').remove(avatars);
 
-  // Logins: the sample profiles' own, plus any left over from an interrupted `add`.
+  // Logins: the removed profiles' own, plus sample staff and student logins left without a profile.
   const loginIds = new Set(profiles.map((p) => p.id));
   for (let page = 1; ; page++) {
     const { data, error } = await supabase.auth.admin.listUsers({
@@ -627,7 +725,11 @@ async function remove() {
     });
     if (error) throw error;
     for (const u of data.users)
-      if (u.email && SAMPLE_LOGIN.test(u.email)) loginIds.add(u.id);
+      if (
+        u.email &&
+        (SAMPLE_LOGIN.test(u.email) || STUDENT_LOGIN.test(u.email))
+      )
+        loginIds.add(u.id);
     if (data.users.length < 1000) break;
   }
   const realProfiles = await prisma.profile.findMany({
@@ -652,7 +754,7 @@ async function remove() {
     removedProfiles,
   ] = counts.map((c) => c.count);
   console.log(
-    `Sample data removed: ${batches} intakes, ${removedProfiles} profiles (${removedStudents} students), ${loginIds.size} logins, ${enrollments} enrollments, ${sessions} classes, ${attendance} attendance marks, ${events} events, ${mats} materials, ${assignments} assignments, ${files.length + avatars.length} files.`,
+    `${legacy ? 'Sample and old-format data' : 'Sample data'} removed: ${batches} intakes, ${removedProfiles} profiles (${removedStudents} students), ${loginIds.size} logins, ${enrollments} enrollments, ${sessions} classes, ${attendance} attendance marks, ${events} events, ${mats} materials, ${assignments} assignments, ${files.length + avatars.length} files.`,
   );
 }
 
@@ -661,9 +763,11 @@ class AlreadyThere extends Error {}
 const command = process.argv[2];
 try {
   if (command === 'add') await add();
-  else if (command === 'remove') await remove();
+  else if (command === 'remove')
+    await remove(process.argv.slice(3).includes('--legacy'));
+  else if (command === 'legacy') await listLegacy();
   else {
-    console.error('Usage: db:sample add | remove');
+    console.error('Usage: db:sample add | remove [--legacy] | legacy');
     process.exitCode = 1;
   }
 } catch (err) {
