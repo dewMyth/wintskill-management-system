@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { todayInput, toDateInput } from '@/lib/format';
 import { errorMessage } from '@/services/api';
+import { nextBatchCode } from './batch-code';
 import { useCreateBatchMutation, useUpdateBatchMutation } from './courses-api';
 import {
   batchStatusLabels,
@@ -25,13 +26,6 @@ import {
 
 const schema = z
   .object({
-    code: z
-      .string()
-      .trim()
-      .regex(
-        /^\d{4}\/(0[1-9]|[1-9]\d)$/,
-        'Year and a 2-digit intake number, e.g. 2026/03',
-      ),
     name: z.string().trim().max(120),
     startDate: z.string().min(1, 'Choose the start date'),
     endDate: z.string(),
@@ -56,26 +50,28 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
   const [updateBatch] = useUpdateBatchMutation();
   const form = useForm<FormValues>({ resolver: zodResolver(schema) });
   const { errors, isSubmitting } = form.formState;
-  const code = useWatch({ control: form.control, name: 'code' });
+  const startDate = useWatch({ control: form.control, name: 'startDate' });
+  // A new intake's code comes from its start year; the API assigns the same one.
+  const code =
+    batch?.code ??
+    (startDate
+      ? nextBatchCode(
+          Number(startDate.slice(0, 4)),
+          course.batches.map((b) => b.code),
+        )
+      : null);
 
   useEffect(() => {
     if (!open) return;
     form.reset({
-      code: batch?.code ?? course.nextBatchCode ?? '',
       name: batch?.name ?? '',
       startDate: batch ? toDateInput(batch.startDate) : todayInput(),
       endDate: toDateInput(batch?.endDate ?? null),
       status: batch?.status ?? 'PLANNED',
     });
-  }, [open, batch, course.nextBatchCode, form]);
+  }, [open, batch, form]);
 
-  const onSubmit = async ({
-    code,
-    name,
-    startDate,
-    endDate,
-    status,
-  }: FormValues) => {
+  const onSubmit = async ({ name, startDate, endDate, status }: FormValues) => {
     const result = batch
       ? await updateBatch({
           courseId: course.id,
@@ -87,7 +83,6 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
         })
       : await createBatch({
           courseId: course.id,
-          code,
           name: name || undefined,
           startDate,
           endDate: endDate || null,
@@ -96,7 +91,9 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
       form.setError('root', { message: errorMessage(result.error) });
       return;
     }
-    toast.success(batch ? 'Intake updated' : `Intake ${code} started`);
+    toast.success(
+      batch ? 'Intake updated' : `Intake ${result.data.code} started`,
+    );
     onOpenChange(false);
   };
 
@@ -108,7 +105,7 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
       description={
         batch
           ? undefined
-          : `Students in this intake get numbers like WINT/${course.code}/${code || '2026/01'}/001.`
+          : 'The intake code is the start year and the next intake number for that year.'
       }
       submitLabel={batch ? 'Save' : 'Start intake'}
       onSubmit={form.handleSubmit(onSubmit)}
@@ -116,20 +113,31 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
       error={errors.root?.message}
     >
       {!batch && (
-        <TextField
-          id="batch-code"
-          label="Intake code"
-          description="Intake year / this year's intake number for the course. The next free code is filled in. Cannot be changed later."
-          maxLength={7}
-          className="h-11"
-          error={errors.code}
-          {...form.register('code')}
-        />
+        <div
+          className="rounded-lg bg-muted px-4 py-3 text-sm"
+          data-testid="batch-code-preview"
+        >
+          {code ? (
+            <>
+              Intake code{' '}
+              <span className="font-mono font-semibold">{code}</span>. Students
+              get numbers like{' '}
+              <span className="font-mono">
+                WINT/{course.code}/{code}/001
+              </span>
+              .
+            </>
+          ) : startDate ? (
+            `${course.code} already has 99 intakes starting in ${startDate.slice(0, 4)}.`
+          ) : (
+            'Choose the start date to see the intake code.'
+          )}
+        </div>
       )}
       <TextField
         id="batch-name"
         label="Name (optional)"
-        placeholder={`${course.code} ${code}`}
+        placeholder={code ? `${course.code} ${code}` : undefined}
         error={errors.name}
         {...form.register('name')}
       />

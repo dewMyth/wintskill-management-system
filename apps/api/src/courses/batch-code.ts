@@ -1,7 +1,8 @@
-/** Batch codes are the intake year and that year's intake number for the course: 2026/01, 2026/02, ... */
-export const BATCH_CODE = /^\d{4}\/(0[1-9]|[1-9]\d)$/;
-
-/** Next free code for the year, or null once intakes 01–99 are all used. */
+/**
+ * Batch codes are the year the intake starts and that year's intake number for the
+ * course: 2026/01, 2026/02, ... The number starts again at 01 each year.
+ * Returns the next free code for the year, or null once intakes 01–99 are all used.
+ */
 export function nextBatchCode(
   year: number,
   existingCodes: string[],

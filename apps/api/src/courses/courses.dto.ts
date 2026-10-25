@@ -17,7 +17,6 @@ import {
 } from 'class-validator';
 import { ToUpperCase, Trim } from '../common/transforms.js';
 import { BatchStatus } from '../generated/prisma/enums.js';
-import { BATCH_CODE } from './batch-code.js';
 
 export class CreateCourseDto {
   @ToUpperCase()
@@ -78,13 +77,8 @@ export class ReorderModulesDto {
 
 const DATE = { strict: true, strictSeparator: true };
 
+/** The code is not sent: it is generated from the start date's year (see batch-code.ts). */
 export class CreateBatchDto {
-  @Trim()
-  @Matches(BATCH_CODE, {
-    message: 'code must be the year and a 2-digit intake number, e.g. 2026/03',
-  })
-  code: string;
-
   @Trim()
   @IsOptional()
   @IsString()
@@ -99,10 +93,8 @@ export class CreateBatchDto {
   endDate?: string | null;
 }
 
-/** The code is fixed once created: registration numbers are built from it. */
-export class UpdateBatchDto extends PartialType(
-  OmitType(CreateBatchDto, ['code']),
-) {
+/** The code is fixed once created, even if the start date moves: registration numbers are built from it. */
+export class UpdateBatchDto extends PartialType(CreateBatchDto) {
   @IsOptional()
   @IsEnum(BatchStatus)
   status?: BatchStatus;

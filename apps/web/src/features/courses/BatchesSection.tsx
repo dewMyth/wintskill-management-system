@@ -36,11 +36,7 @@ export function BatchesSection({ course }: { course: CourseDetail }) {
   };
 
   const startButton = (
-    <Button
-      className="min-h-11"
-      onClick={() => openForm()}
-      disabled={!course.nextBatchCode}
-    >
+    <Button className="min-h-11" onClick={() => openForm()}>
       <CalendarPlusIcon /> Start new intake
     </Button>
   );

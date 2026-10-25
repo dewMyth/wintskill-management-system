@@ -234,12 +234,12 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 
 ### Phase 3 — Courses, modules, batches (Admin)
 - CRUD: courses (code, name), modules per course (code, title, order), batches per course
-- "Start new batch intake": the batch code defaults to the next free intake number for the current year (`2026/02` → `2026/03`), and the admin can edit it. Creating the batch also creates its `BatchCounter`
+- "Start new batch intake": the system generates the batch code from the start date: its year, then the next intake number for that year (`2026/02` → `2026/03`; the first intake starting in 2027 is `2027/01`). The dialog previews it; the code never changes afterwards, even if the start date moves. Creating the batch also creates its `BatchCounter`
 - Soft-deactivate instead of delete when a course or batch has dependants
 
 **Success criteria**
-- [x] Course codes are unique; module codes and batch codes are unique per course (DB constraint + friendly 409 message)
-- [x] Batch code must match `^\d{4}/\d{2}$` (intake 01–99); suggested next code is unit tested
+- [x] Course codes are unique; module codes and batch codes are unique per course (DB constraint, friendly 409 message for courses and modules)
+- [x] Batch codes are generated as `YYYY/NN` (intake 01–99, restarting each year); next code is unit tested and parallel creations get different codes (test)
 - [x] Non-admin calls return 403 (tested)
 - [x] Service behaviour covered by API tests against the database (pure logic unit tested); UI works at 360px
 

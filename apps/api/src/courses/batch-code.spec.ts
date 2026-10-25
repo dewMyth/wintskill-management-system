@@ -1,4 +1,4 @@
-import { BATCH_CODE, nextBatchCode } from './batch-code.js';
+import { nextBatchCode } from './batch-code.js';
 
 describe('nextBatchCode', () => {
   it('starts at 01 for a new year', () => {
@@ -16,19 +16,4 @@ describe('nextBatchCode', () => {
   it('returns null when every intake number is used', () => {
     expect(nextBatchCode(2026, ['2026/99'])).toBeNull();
   });
-});
-
-describe('BATCH_CODE', () => {
-  it.each(['2026/01', '2026/10', '1999/99'])('accepts %s', (code) =>
-    expect(BATCH_CODE.test(code)).toBe(true),
-  );
-  it.each([
-    '2026',
-    '2026A',
-    '2026/1',
-    '2026/00',
-    '2026/100',
-    '2026-01',
-    '26/01',
-  ])('rejects %s', (code) => expect(BATCH_CODE.test(code)).toBe(false));
 });
