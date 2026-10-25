@@ -87,13 +87,13 @@ describe('teachers', () => {
     expect(dup.body.message).toBe(`Username ${username} is already taken`);
   });
 
-  it.each([['hsc2026a001'], ['ab'], ['has space'], ['9lives']])(
+  it.each([['hd-2026-01-001'], ['ab'], ['has space'], ['9lives']])(
     'rejects username %s',
     async (username) => {
       const res = await post('/teachers', { username, fullName: 'X' }).expect(
         400,
       );
-      if (username === 'hsc2026a001') {
+      if (username === 'hd-2026-01-001') {
         expect(res.body.message).toBe(
           'This username looks like a student registration number. Choose another.',
         );

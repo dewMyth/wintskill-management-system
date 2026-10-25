@@ -212,7 +212,7 @@ export class AttendanceService {
       .map((row) => row.map(csvCell).join(','))
       .join('\r\n');
     return {
-      filename: `attendance-${report.batch.course.code}${report.batch.code}.csv`,
+      filename: `attendance-${report.batch.course.code}-${report.batch.code.replace('/', '-')}.csv`,
       csv,
     };
   }

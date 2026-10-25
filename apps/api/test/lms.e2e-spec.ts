@@ -108,14 +108,18 @@ beforeAll(async () => {
       name: 'LMS test',
       modules: { create: { code: 'M01', title: 'Safety' } },
       batches: {
-        create: { code: '2026A', name: 'A', startDate: new Date('2026-01-01') },
+        create: {
+          code: '2026/01',
+          name: 'A',
+          startDate: new Date('2026-01-01'),
+        },
       },
     },
     include: { modules: true, batches: true },
   });
   courseId = course.id;
   moduleId = course.modules[0].id;
-  registrationNo = `${code}2026A001`;
+  registrationNo = `WINT/${code}/2026/01/001`;
   const enrollment = await prisma.enrollment.create({
     data: {
       registrationNo,

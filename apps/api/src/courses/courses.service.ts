@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { withUniqueMessage } from '../common/prisma-errors.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { nextBatchCode } from './batch-code.js';
 import type {
   CreateCourseDto,
   CreateModuleDto,
@@ -46,10 +45,6 @@ export class CoursesService {
         ...batch,
         enrollmentCount: _count.enrollments,
       })),
-      nextBatchCode: nextBatchCode(
-        new Date().getFullYear(),
-        course.batches.map((b) => b.code),
-      ),
     };
   }
 

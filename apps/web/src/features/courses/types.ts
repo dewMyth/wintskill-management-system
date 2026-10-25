@@ -40,7 +40,6 @@ export interface BatchWithCourse extends Omit<Batch, 'enrollmentCount'> {
 export interface CourseDetail extends Course {
   modules: CourseModule[];
   batches: Batch[];
-  nextBatchCode: string | null;
 }
 
 export const batchStatusLabels: Record<BatchStatus, string> = {

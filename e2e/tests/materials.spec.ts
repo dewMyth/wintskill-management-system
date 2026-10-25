@@ -89,7 +89,9 @@ test('a student views a material: watermarked, no saving or printing, paused in 
 }, testInfo) => {
   // Each project uses its own student, so the "viewed" tick starts unticked.
   const username =
-    testInfo.project.name === 'mobile' ? 'HD2026A002' : 'HD2026A003';
+    testInfo.project.name === 'mobile'
+      ? 'WINT/HD/2026/01/002'
+      : 'WINT/HD/2026/01/003';
   await openMaterials(page, username, 'Learn');
   const handout = page.getByRole('link', { name: /Week 1 handout/ });
   await expect(handout.getByLabel('Viewed')).toHaveCount(0);
@@ -156,7 +158,7 @@ test('a student views a material: watermarked, no saving or printing, paused in 
 });
 
 test('students see assignments but no upload controls', async ({ page }) => {
-  await openMaterials(page, 'HD2026A001', 'Learn');
+  await openMaterials(page, 'WINT/HD/2026/01/001', 'Learn');
   await page.getByLabel('Course').click(); // enrolled in two courses
   await page.getByRole('option', { name: /HD/ }).click();
   await expect(page.getByText('Hygiene checklist')).toBeVisible();
@@ -170,7 +172,7 @@ test.describe('small phone (360px)', () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
   test('learning pages fit and are easy to tap', async ({ page }) => {
-    await openMaterials(page, 'HD2026A002', 'Learn');
+    await openMaterials(page, 'WINT/HD/2026/01/002', 'Learn');
     await expectNoHorizontalScroll(page);
     await expectTouchTargets(page);
     await page.getByRole('link', { name: /Week 1 handout/ }).click();

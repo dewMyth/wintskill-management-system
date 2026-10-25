@@ -89,10 +89,7 @@ export const coursesApi = api.injectEndpoints({
       invalidatesTags: (_r, _e, { courseId }) => [courseTag(courseId)],
     }),
 
-    createBatch: build.mutation<
-      Batch,
-      { courseId: string; code: string } & BatchInput
-    >({
+    createBatch: build.mutation<Batch, { courseId: string } & BatchInput>({
       query: ({ courseId, ...body }) => ({
         url: `courses/${courseId}/batches`,
         method: 'POST',

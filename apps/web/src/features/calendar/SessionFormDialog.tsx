@@ -28,6 +28,7 @@ import {
   useCreateSessionMutation,
   useDeleteSessionMutation,
   useUpdateSessionMutation,
+  type SessionScope,
 } from './calendar-api';
 import { warnAboutClashes } from './clash-warning';
 import { endOfDay, localDate, localTime, toInstant } from './time';
@@ -45,6 +46,7 @@ const schema = z
     venue: z.string().trim().max(100),
     notes: z.string().trim().max(500),
     repeatUntil: z.string(),
+    scope: z.enum(['one', 'following']),
   })
   .refine((v) => !v.start || !v.end || v.end > v.start, {
     path: ['end'],
@@ -65,7 +67,14 @@ interface Props {
   initial?: { start?: Date; end?: Date; batchId?: string };
   /** Link to this class's register, once it has started. */
   attendanceHref?: string;
+  /** A teacher editing their own class: the teacher cannot be changed. */
+  teacherView?: boolean;
 }
+
+const scopeLabels: Record<SessionScope, string> = {
+  one: 'This class only',
+  following: 'This and the following classes',
+};
 
 export function SessionFormDialog({
   open,
@@ -73,18 +82,27 @@ export function SessionFormDialog({
   session,
   initial,
   attendanceHref,
+  teacherView,
 }: Props) {
   const [createSession] = useCreateSessionMutation();
   const [updateSession] = useUpdateSessionMutation();
   const [deleteSession] = useDeleteSessionMutation();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const { data: teachers } = useGetTeachersQuery();
-  const { data: batches } = useGetBatchesQuery();
+  // Teachers cannot list teachers or intakes; they only edit their own classes.
+  const { data: teachers } = useGetTeachersQuery(undefined, {
+    skip: teacherView,
+  });
+  const { data: batches } = useGetBatchesQuery(undefined, {
+    skip: teacherView,
+  });
   const form = useForm<FormValues>({ resolver: zodResolver(schema) });
   const { errors, isSubmitting } = form.formState;
 
   const batchId = useWatch({ control: form.control, name: 'batchId' });
-  const courseId = batches?.find((b) => b.id === batchId)?.course.id;
+  const scope = useWatch({ control: form.control, name: 'scope' });
+  const courseId =
+    session?.batch.course.id ??
+    batches?.find((b) => b.id === batchId)?.course.id;
   // currentData, not data: while another intake's modules load, show none rather than the old ones.
   const { currentData: course } = useGetCourseQuery(courseId!, {
     skip: !courseId,
@@ -109,6 +127,7 @@ export function SessionFormDialog({
       venue: session?.venue ?? '',
       notes: session?.notes ?? '',
       repeatUntil: '',
+      scope: 'one',
     });
   }, [open, session, initial, form]);
 
@@ -122,10 +141,15 @@ export function SessionFormDialog({
       notes: v.notes || null,
     };
     if (session) {
-      const result = await updateSession({ id: session.id, ...details });
+      const result = await updateSession({
+        id: session.id,
+        ...details,
+        scope: v.scope,
+      });
       if (result.error)
         return form.setError('root', { message: errorMessage(result.error) });
-      toast.success('Class updated');
+      const count = result.data.updated;
+      toast.success(count === 1 ? 'Class updated' : `${count} classes updated`);
       warnAboutClashes(result.data.clashes);
     } else {
       const result = await createSession({
@@ -146,9 +170,9 @@ export function SessionFormDialog({
 
   const remove = async () => {
     setConfirmDelete(false);
-    const result = await deleteSession(session!.id);
+    const result = await deleteSession({ id: session!.id, scope });
     if (result.error) return toast.error(errorMessage(result.error));
-    toast.success('Class deleted');
+    toast.success(scope === 'following' ? 'Classes deleted' : 'Class deleted');
     onOpenChange(false);
   };
 
@@ -216,32 +240,34 @@ export function SessionFormDialog({
             )}
           />
         </Field>
-        <Field data-invalid={!!errors.teacherId}>
-          <FieldLabel htmlFor="session-teacher">Teacher</FieldLabel>
-          <Controller
-            control={form.control}
-            name="teacherId"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="session-teacher"
-                  className="w-full"
-                  aria-invalid={!!errors.teacherId}
-                >
-                  <SelectValue placeholder="Choose a teacher" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeTeachers.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="min-h-11">
-                      {t.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          <FieldError errors={[errors.teacherId]} />
-        </Field>
+        {!teacherView && (
+          <Field data-invalid={!!errors.teacherId}>
+            <FieldLabel htmlFor="session-teacher">Teacher</FieldLabel>
+            <Controller
+              control={form.control}
+              name="teacherId"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger
+                    id="session-teacher"
+                    className="w-full"
+                    aria-invalid={!!errors.teacherId}
+                  >
+                    <SelectValue placeholder="Choose a teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeTeachers.map((t) => (
+                      <SelectItem key={t.id} value={t.id} className="min-h-11">
+                        {t.fullName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <FieldError errors={[errors.teacherId]} />
+          </Field>
+        )}
         <TextField
           id="session-date"
           type="date"
@@ -282,10 +308,39 @@ export function SessionFormDialog({
             id="session-repeat"
             type="date"
             label="Repeat weekly until (optional)"
-            description="Adds the same class every week up to this date. Each one can be edited on its own."
+            description="Adds the same class every week up to this date. Later you can change or delete one class or the rest of the series."
             error={errors.repeatUntil}
             {...form.register('repeatUntil')}
           />
+        )}
+        {session?.seriesId && (
+          <Field>
+            <FieldLabel htmlFor="session-scope">
+              Weekly class: apply changes to
+            </FieldLabel>
+            <Controller
+              control={form.control}
+              name="scope"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="session-scope" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(scopeLabels).map(([value, label]) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="min-h-11"
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Field>
         )}
         {session && (
           <div className="flex flex-wrap gap-2">
@@ -302,7 +357,10 @@ export function SessionFormDialog({
               className="min-h-11 text-destructive"
               onClick={() => setConfirmDelete(true)}
             >
-              <Trash2Icon /> Delete this class
+              <Trash2Icon />
+              {scope === 'following'
+                ? 'Delete this and following'
+                : 'Delete this class'}
             </Button>
           </div>
         )}
@@ -310,9 +368,13 @@ export function SessionFormDialog({
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title="Delete this class?"
-        description="Attendance marked for it will be deleted too. This cannot be undone."
-        confirmLabel="Delete class"
+        title={
+          scope === 'following'
+            ? 'Delete this and the following classes?'
+            : 'Delete this class?'
+        }
+        description={`Attendance marked for ${scope === 'following' ? 'them' : 'it'} will be deleted too. This cannot be undone.`}
+        confirmLabel={scope === 'following' ? 'Delete classes' : 'Delete class'}
         destructive
         onConfirm={remove}
       />

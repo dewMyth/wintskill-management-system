@@ -16,6 +16,9 @@ export interface SessionInput {
   notes: string | null;
 }
 
+/** Which classes of a weekly series a change applies to. */
+export type SessionScope = 'one' | 'following';
+
 export interface EventInput {
   batchId: string | null;
   title: string;
@@ -45,8 +48,8 @@ export const calendarApi = api.injectEndpoints({
       invalidatesTags: [tag],
     }),
     updateSession: build.mutation<
-      { session: ClassSession; clashes: Clash[] },
-      { id: string } & Partial<SessionInput>
+      { session: ClassSession; updated: number; clashes: Clash[] },
+      { id: string; scope?: SessionScope } & Partial<SessionInput>
     >({
       query: ({ id, ...body }) => ({
         url: `sessions/${id}`,
@@ -55,8 +58,12 @@ export const calendarApi = api.injectEndpoints({
       }),
       invalidatesTags: [tag],
     }),
-    deleteSession: build.mutation<void, string>({
-      query: (id) => ({ url: `sessions/${id}`, method: 'DELETE' }),
+    deleteSession: build.mutation<void, { id: string; scope?: SessionScope }>({
+      query: ({ id, scope }) => ({
+        url: `sessions/${id}`,
+        method: 'DELETE',
+        params: scope ? { scope } : undefined,
+      }),
       invalidatesTags: [tag],
     }),
     createEvent: build.mutation<CalendarEvent, EventInput>({

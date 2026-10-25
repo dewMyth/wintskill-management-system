@@ -19,7 +19,7 @@ pnpm --filter api db:seed
 pnpm --filter e2e exec playwright install chromium   # first time only
 ```
 
-Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must change password first), students `HD2026A001`–`HD2026A030` (`HD2026A001` is also in BT).
+Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must change password first), students `WINT/HD/2026/01/001`–`WINT/HD/2026/01/030` (`…/001` is also in BT; at login `hd-2026-1-1` works too).
 
 ## Commands
 
@@ -34,7 +34,8 @@ Seed logins (password `Password123!`): `admin`, `teacher`, `newteacher` (must ch
 | `pnpm --filter api db:seed` | Replace local data with the seed |
 | `pnpm --filter api db:seed:courses` | Add the academy's courses from `apps/api/prisma/courses.ts` (skips existing codes; safe in production) |
 | `pnpm --filter api db:create-admin <username> "<full name>" [phone]` | Create one admin login with a temporary password (for a fresh production database) |
-| `pnpm --filter api db:sample add` / `remove` | Add removable sample data next to real data (logins share one printed password); `remove` before going live |
+| `pnpm --filter api db:sample add` / `remove` | Add removable sample data next to real data (an intake for every course; logins share one printed password); `remove` before going live |
+| `pnpm --filter api db:sample legacy` / `remove --legacy` | List (changes nothing) / delete old-format intakes (`2026A`) and students (`HD2026A001`) from before `WINT/` numbers |
 | `pnpm --filter api db:reset` | Drop and recreate the local database, then seed |
 
 ## Deployment (Railway)

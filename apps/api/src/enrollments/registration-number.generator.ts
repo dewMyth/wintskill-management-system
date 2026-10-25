@@ -16,7 +16,10 @@ export const REGISTRATION_NUMBER_GENERATOR = Symbol(
   'REGISTRATION_NUMBER_GENERATOR',
 );
 
-/** HSC + 2026A + 001 -> HSC2026A001. The counter row lock keeps parallel registrations unique. */
+/** Company code at the start of every registration number. */
+export const COMPANY_CODE = 'WINT';
+
+/** WINT + BB + 2026/03 + 092 -> WINT/BB/2026/03/092. The counter row lock keeps parallel registrations unique. */
 @Injectable()
 export class CourseBatchSequenceGenerator implements RegistrationNumberGenerator {
   async next(
@@ -27,6 +30,6 @@ export class CourseBatchSequenceGenerator implements RegistrationNumberGenerator
       where: { batchId: batch.id },
       data: { lastSeq: { increment: 1 } },
     });
-    return `${course.code}${batch.code}${String(lastSeq).padStart(3, '0')}`;
+    return `${COMPANY_CODE}/${course.code}/${batch.code}/${String(lastSeq).padStart(3, '0')}`;
   }
 }

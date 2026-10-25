@@ -100,7 +100,7 @@ async function createAccount(
   });
 }
 
-/** Creates the course; with `batchStart`, also an active 2026A intake. */
+/** Creates the course; with `batchStart`, also an active 2026/01 intake. */
 async function createCourse(
   { code, modules, ...course }: CourseData,
   batchStart?: string,
@@ -115,8 +115,8 @@ async function createCourse(
       batches: batchStart
         ? {
             create: {
-              code: '2026A',
-              name: `${code} 2026 Intake A`,
+              code: '2026/01',
+              name: `${code} 2026 Intake 01`,
               startDate: new Date(batchStart),
               status: 'ACTIVE',
               counter: { create: {} },
@@ -193,7 +193,7 @@ const salonModule = hd.module('M04'); // Maintenance of safe and pleasant salon 
 const cuttingModule = hd.module('M07'); // Cutting and setting ladies hair
 const skinModule = bt.module('M07'); // Skin analysis
 
-// 27 more HD students (HD2026A004–030), so a register has a realistic 30 names.
+// 27 more HD students (WINT/HD/2026/01/004–030), so a register has a realistic 30 names.
 // Created first, so the three named students below stay at the top of the student list.
 const firstNames = [
   'Hiruni',
@@ -209,7 +209,7 @@ const firstNames = [
 const lastNames = ['Perera', 'Fernando', 'Wijesinghe'];
 for (let i = 0; i < 27; i++) {
   const n = i + 4;
-  const registrationNo = `HD2026A${String(n).padStart(3, '0')}`;
+  const registrationNo = `WINT/HD/2026/01/${String(n).padStart(3, '0')}`;
   const first = firstNames[i % firstNames.length];
   const last = lastNames[Math.floor(i / firstNames.length)];
   const student = await createStudent(
@@ -229,7 +229,7 @@ for (let i = 0; i < 27; i++) {
 }
 
 const kavindi = await createStudent(
-  'HD2026A001',
+  'WINT/HD/2026/01/001',
   { fullName: 'Kavindi Sewwandi Silva', phone: '0711111111' },
   {
     nameWithInitials: 'K. S. Silva',
@@ -254,7 +254,7 @@ const kavindi = await createStudent(
   },
 );
 const tharushi = await createStudent(
-  'HD2026A002',
+  'WINT/HD/2026/01/002',
   { fullName: 'Tharushi Nethmini Fernando', phone: '0713333333' },
   {
     nameWithInitials: 'T. N. Fernando',
@@ -264,7 +264,7 @@ const tharushi = await createStudent(
   },
 );
 const dilini = await createStudent(
-  'HD2026A003',
+  'WINT/HD/2026/01/003',
   { fullName: 'Dilini Madushika Jayasinghe', phone: '0714444444' },
   {
     nameWithInitials: 'D. M. Jayasinghe',
@@ -274,10 +274,10 @@ const dilini = await createStudent(
   },
 );
 
-await enroll(kavindi.id, hdBatch.id, 'HD2026A001');
-await enroll(tharushi.id, hdBatch.id, 'HD2026A002');
-await enroll(dilini.id, hdBatch.id, 'HD2026A003');
-await enroll(kavindi.id, btBatch.id, 'BT2026A001');
+await enroll(kavindi.id, hdBatch.id, 'WINT/HD/2026/01/001');
+await enroll(tharushi.id, hdBatch.id, 'WINT/HD/2026/01/002');
+await enroll(dilini.id, hdBatch.id, 'WINT/HD/2026/01/003');
+await enroll(kavindi.id, btBatch.id, 'WINT/BT/2026/01/001');
 
 // Calendar for this week and next (Sri Lanka time, +05:30), so calendars are not empty.
 const DAY = 24 * 60 * 60 * 1000;
@@ -380,5 +380,5 @@ await prisma.calendarEvent.createMany({
 
 await prisma.$disconnect();
 console.log(
-  `Seeded. Users: admin, teacher, newteacher (must change password), HD2026A001-030. Password: ${password}`,
+  `Seeded. Users: admin, teacher, newteacher (must change password), WINT/HD/2026/01/001-030. Password: ${password}`,
 );

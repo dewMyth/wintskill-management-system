@@ -78,7 +78,7 @@ test('an admin marks a class and downloads the intake report', async ({
 
   await page.getByRole('tab', { name: 'Reports' }).click();
   await page.getByLabel('Report for intake').click();
-  await page.getByRole('option', { name: /HD 2026A/ }).click();
+  await page.getByRole('option', { name: /HD 2026\/01/ }).click();
   // Columns: Student, Attendance, P/L/A/E, then every module (M01–M14, BM01–BM03).
   // Only this test marks M07 (the phone test marks M04).
   const m07 = page
@@ -91,13 +91,13 @@ test('an admin marks a class and downloads the intake report', async ({
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download CSV' }).click();
   const file = await download;
-  expect(file.suggestedFilename()).toBe('attendance-HD2026A.csv');
+  expect(file.suggestedFilename()).toBe('attendance-HD-2026-01.csv');
   const csv = await readFile(await file.path(), 'utf8');
   expect(csv).toContain(
     'Registration no,Name,Enrollment,Present,Late,Absent,Excused,Attendance %,M01 %,M02 %,M03 %,M04 %,M05 %,M06 %,M07 %',
   );
   expect(csv).toMatch(
-    /HD2026A001,Kavindi Sewwandi Silva,ACTIVE,\d+,\d+,[1-9]\d*,\d+,[\d.]*,(?:[\d.]*,){6}0,/,
+    /WINT\/HD\/2026\/01\/001,Kavindi Sewwandi Silva,ACTIVE,\d+,\d+,[1-9]\d*,\d+,[\d.]*,(?:[\d.]*,){6}0,/,
   );
 });
 
@@ -121,7 +121,7 @@ test('a teacher opens the register from the calendar', async ({ page }) => {
 });
 
 test('students have no attendance pages', async ({ page }) => {
-  await login(page, 'HD2026A002');
+  await login(page, 'WINT/HD/2026/01/002');
   await expect(page).toHaveURL('/student');
   await expect(page.getByRole('link', { name: 'Attendance' })).toHaveCount(0);
   await page.goto('/teacher/attendance');

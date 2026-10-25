@@ -48,6 +48,10 @@ export const studentsApi = api.injectEndpoints({
       }),
       invalidatesTags: (_r, _e, { id }) => [listTag, studentTag(id)],
     }),
+    deleteStudent: build.mutation<void, string>({
+      query: (id) => ({ url: `students/${id}`, method: 'DELETE' }),
+      invalidatesTags: [listTag, { type: 'Course', id: 'LIST' }],
+    }),
     enrollStudent: build.mutation<
       { enrollmentId: string; registrationNo: string },
       { id: string; batchId: string }
@@ -82,6 +86,7 @@ export const {
   useLazyFindStudentByNicQuery,
   useRegisterStudentMutation,
   useUpdateStudentMutation,
+  useDeleteStudentMutation,
   useEnrollStudentMutation,
   useUpdateEnrollmentMutation,
 } = studentsApi;

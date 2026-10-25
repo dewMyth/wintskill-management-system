@@ -181,8 +181,10 @@ model Enrollment {
   @@unique([studentId, batchId])
 }
 
+/// `seriesId` links classes created together with "repeat weekly" (null for a one-off class).
 model ClassSession {
   id        String   @id @default(uuid(7)) @db.Uuid
+  seriesId  String?  @db.Uuid
   batchId   String   @db.Uuid
   moduleId  String?  @db.Uuid
   teacherId String   @db.Uuid
@@ -198,6 +200,7 @@ model ClassSession {
 
   @@index([batchId, startsAt])
   @@index([teacherId, startsAt])
+  @@index([seriesId, startsAt])
 }
 
 model Attendance {

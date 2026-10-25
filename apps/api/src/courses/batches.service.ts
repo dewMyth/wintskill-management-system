@@ -3,8 +3,9 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { withUniqueMessage } from '../common/prisma-errors.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { nextBatchCode } from './batch-code.js';
 import type { CreateBatchDto, UpdateBatchDto } from './courses.dto.js';
 
 const toDate = (value: string | null | undefined) =>
@@ -30,7 +31,11 @@ export class BatchesService {
     });
   }
 
-  /** Starts a new intake. Its counter issues the registration numbers. */
+  /**
+   * Starts a new intake, coded with the start year and the next intake number for that year.
+   * If a parallel request takes the same code first, the unique constraint rejects this one
+   * and it tries the next number. Its counter issues the registration numbers.
+   */
   async create(courseId: string, dto: CreateBatchDto) {
     const course = await this.prisma.course.findUniqueOrThrow({
       where: { id: courseId },
@@ -38,19 +43,38 @@ export class BatchesService {
     const startDate = new Date(dto.startDate);
     const endDate = toDate(dto.endDate);
     assertDateOrder(startDate, endDate);
-    return withUniqueMessage(
-      this.prisma.batch.create({
-        data: {
-          courseId,
-          code: dto.code,
-          name: dto.name || `${course.code} ${dto.code}`,
-          startDate,
-          endDate,
-          counter: { create: {} },
-        },
-      }),
-      `Batch ${dto.code} already exists for ${course.code}`,
-    );
+    const year = startDate.getUTCFullYear();
+    for (let attempt = 1; ; attempt++) {
+      const existing = await this.prisma.batch.findMany({
+        where: { courseId },
+        select: { code: true },
+      });
+      const code = nextBatchCode(
+        year,
+        existing.map((b) => b.code),
+      );
+      if (!code)
+        throw new ConflictException(
+          `${course.code} already has 99 intakes starting in ${year}`,
+        );
+      try {
+        return await this.prisma.batch.create({
+          data: {
+            courseId,
+            code,
+            name: dto.name || `${course.code} ${code}`,
+            startDate,
+            endDate,
+            counter: { create: {} },
+          },
+        });
+      } catch (e) {
+        const taken =
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === 'P2002';
+        if (!taken || attempt === 20) throw e;
+      }
+    }
   }
 
   async update(id: string, dto: UpdateBatchDto) {

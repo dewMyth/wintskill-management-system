@@ -11,7 +11,7 @@ import {
 const course = { id: 'c1', code: 'HSC', isActive: true };
 const batch = (status = 'ACTIVE') => ({
   id: 'b1',
-  code: '2026A',
+  code: '2026/01',
   status,
   course,
 });
@@ -55,7 +55,7 @@ describe('EnrollmentsService', () => {
     expect(enrollment).toMatchObject({
       studentId: 's1',
       batchId: 'b1',
-      registrationNo: 'WS-HSC-2026A-0042',
+      registrationNo: 'WS-HSC-2026/01-0042',
     });
   });
 

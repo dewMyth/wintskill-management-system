@@ -9,7 +9,7 @@ import {
   randomDigits,
 } from './helpers';
 
-const year = 2026; // seeded intakes are 2026A
+const year = 2026; // seeded intakes are 2026/01
 
 async function openStudents(page: Page) {
   await login(page, 'admin');
@@ -72,13 +72,13 @@ test('admin registers a new student who then signs in with their registration nu
   await page.getByRole('button', { name: 'Register student' }).click();
   await expect(page.getByRole('alert')).toHaveText('Choose a course intake');
   await page.getByLabel('Course intake').click();
-  await page.getByRole('option', { name: `HD ${year}A` }).click();
+  await page.getByRole('option', { name: `HD ${year}/01` }).click();
   await page.getByRole('button', { name: 'Register student' }).click();
 
   const registrationNo = (await page
     .getByTestId('registration-no')
     .textContent())!;
-  expect(registrationNo).toMatch(new RegExp(`^HD${year}A\\d{3}$`));
+  expect(registrationNo).toMatch(new RegExp(`^WINT/HD/${year}/01/\\d{3}$`));
   const temporaryPassword = (await page
     .getByTestId('temporary-password')
     .textContent())!;
@@ -101,6 +101,16 @@ test('admin registers a new student who then signs in with their registration nu
     'MyStudentPass1',
   );
   await expect(studentPage).toHaveURL('/student');
+
+  // The admin deletes the student again and is back on the list.
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  const confirm = page.getByRole('alertdialog');
+  await expect(confirm).toContainText(registrationNo);
+  await confirm.getByRole('button', { name: 'Delete student' }).click();
+  await expect(
+    page.getByText('Nethmi Kaveesha Rajapaksha was deleted'),
+  ).toBeVisible();
+  await expect(page).toHaveURL('/admin/students');
 });
 
 test('a returning student gets a new number for another course and keeps their login', async ({
@@ -109,8 +119,8 @@ test('a returning student gets a new number for another course and keeps their l
   // Each project uses its own seeded student (both are only in HD).
   const [nic, name, username] =
     testInfo.project.name === 'mobile'
-      ? ['N1234567', 'Dilini Madushika Jayasinghe', 'HD2026A003']
-      : ['200298765432', 'Tharushi Nethmini Fernando', 'HD2026A002'];
+      ? ['N1234567', 'Dilini Madushika Jayasinghe', 'WINT/HD/2026/01/003']
+      : ['200298765432', 'Tharushi Nethmini Fernando', 'WINT/HD/2026/01/002'];
 
   await openStudents(page);
   await page.getByRole('link', { name: 'Register student' }).click();
@@ -123,11 +133,11 @@ test('a returning student gets a new number for another course and keeps their l
 
   await page.getByLabel('Course intake').click();
   await expect(page.getByRole('option', { name: /HD/ })).toHaveCount(0); // already in HD
-  await page.getByRole('option', { name: `BT ${year}A` }).click();
+  await page.getByRole('option', { name: `BT ${year}/01` }).click();
   await page.getByRole('button', { name: 'Enroll student' }).click();
 
   await expect(page.getByTestId('registration-no')).toHaveText(
-    new RegExp(`^BT${year}A\\d{3}$`),
+    new RegExp(`^WINT/BT/${year}/01/\\d{3}$`),
   );
   await expect(
     page.getByText(`They keep signing in as ${username}`),
@@ -170,7 +180,7 @@ test('admin edits a student, changes a status and resets the password', async ({
   await expect(page.getByText('Student updated')).toBeVisible();
   await expect(page.getByText('99 New Road, Maharagama')).toBeVisible();
 
-  await page.getByLabel('Status of BT2026A001').click();
+  await page.getByLabel('Status of WINT/BT/2026/01/001').click();
   await page.getByRole('option', { name: 'Withdrawn' }).click();
   await expect(page.getByText('Enrollment updated')).toBeVisible();
 
@@ -183,7 +193,7 @@ test('admin edits a student, changes a status and resets the password', async ({
     .getByRole('button', { name: 'Reset password' })
     .click();
   const dialog = page.getByRole('dialog', { name: 'Login details' });
-  await expect(dialog).toContainText('HD2026A001');
+  await expect(dialog).toContainText('WINT/HD/2026/01/001');
   await dialog.getByRole('button', { name: 'Done' }).click();
   await expect(page.getByText('Has temporary password')).toBeVisible();
 });

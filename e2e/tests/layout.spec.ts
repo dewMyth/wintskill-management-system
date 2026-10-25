@@ -12,7 +12,7 @@ test.describe('small phone (360px)', () => {
 
   for (const [username, home] of [
     ['admin', '/admin'],
-    ['HD2026A001', '/student'],
+    ['WINT/HD/2026/01/001', '/student'],
   ]) {
     test(`${home} and account pages fit and are easy to tap`, async ({
       page,
@@ -42,6 +42,10 @@ test('dark mode is remembered', async ({ page }) => {
   await page.getByRole('button', { name: 'Open user menu' }).click();
   await page.getByRole('menuitem', { name: 'Dark mode' }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
+  // redux-persist saves a moment later; reloading before that would lose the choice.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('persist:wintskill')))
+    .toContain('dark');
   await page.reload();
   await expect(page.locator('html')).toHaveClass(/dark/);
 });

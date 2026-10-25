@@ -1,7 +1,20 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import type { Prisma } from '../generated/prisma/client.js';
+import { randomUUID } from 'node:crypto';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import type {
+  ClassSession,
+  Prisma,
+  Profile,
+} from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import type { CreateSessionDto, UpdateSessionDto } from './calendar.dto.js';
+import type {
+  CreateSessionDto,
+  Scope,
+  UpdateSessionDto,
+} from './calendar.dto.js';
 import {
   MAX_OCCURRENCES,
   weeklyOccurrences,
@@ -57,9 +70,11 @@ export class SessionsService {
       );
 
     const clashes = await this.clashes(dto.teacherId, occurrences);
+    const seriesId = occurrences.length > 1 ? randomUUID() : null;
     const sessions = await this.prisma.classSession.createManyAndReturn({
       data: occurrences.map((o) => ({
         ...o,
+        seriesId,
         batchId: dto.batchId,
         moduleId: dto.moduleId ?? null,
         teacherId: dto.teacherId,
@@ -71,11 +86,16 @@ export class SessionsService {
     return { sessions, clashes };
   }
 
-  async update(id: string, dto: UpdateSessionDto) {
-    const current = await this.prisma.classSession.findUniqueOrThrow({
-      where: { id },
-      include: { batch: true },
-    });
+  /**
+   * Changes a class, or with scope `following` also the later classes of its series: they
+   * move by the same amount of time and get the same module, teacher, venue and notes.
+   */
+  async update(user: Profile, id: string, { scope, ...dto }: UpdateSessionDto) {
+    const current = await this.sessionFor(user, id);
+    if (user.role === 'TEACHER' && dto.teacherId && dto.teacherId !== user.id)
+      throw new ForbiddenException(
+        'Only an admin can give a class to another teacher',
+      );
     const teacherId = dto.teacherId ?? current.teacherId;
     await this.assertModuleAndTeacher(
       current.batch.courseId,
@@ -87,36 +107,83 @@ export class SessionsService {
       endsAt: dto.endsAt ? new Date(dto.endsAt) : current.endsAt,
     };
     assertOrder(interval);
+    const startShift = interval.startsAt.getTime() - current.startsAt.getTime();
+    const endShift = interval.endsAt.getTime() - current.endsAt.getTime();
 
-    const clashes = await this.clashes(teacherId, [interval], id);
-    const session = await this.prisma.classSession.update({
-      where: { id },
-      data: {
-        ...interval,
-        teacherId,
-        moduleId: dto.moduleId,
-        venue: dto.venue,
-        notes: dto.notes,
-      },
-      include: sessionInclude,
-    });
-    return { session, clashes };
+    const targets = await this.targets(user, current, scope);
+    const changes = targets.map((s) => ({
+      id: s.id,
+      startsAt: new Date(s.startsAt.getTime() + startShift),
+      endsAt: new Date(s.endsAt.getTime() + endShift),
+    }));
+    const ids = changes.map((c) => c.id);
+    const clashes = await this.clashes(teacherId, changes, ids);
+    const updated = await this.prisma.$transaction(
+      changes.map(({ id: sessionId, startsAt, endsAt }) =>
+        this.prisma.classSession.update({
+          where: { id: sessionId },
+          data: {
+            startsAt,
+            endsAt,
+            teacherId,
+            moduleId: dto.moduleId,
+            venue: dto.venue,
+            notes: dto.notes,
+          },
+          include: sessionInclude,
+        }),
+      ),
+    );
+    return {
+      session: updated.find((s) => s.id === id)!,
+      updated: updated.length,
+      clashes,
+    };
   }
 
-  async remove(id: string) {
-    await this.prisma.classSession.delete({ where: { id } });
+  /** Deletes a class, or with scope `following` also the later classes of its series. */
+  async remove(user: Profile, id: string, scope?: Scope) {
+    const current = await this.sessionFor(user, id);
+    const targets = await this.targets(user, current, scope);
+    await this.prisma.classSession.deleteMany({
+      where: { id: { in: targets.map((s) => s.id) } },
+    });
+  }
+
+  /** Loads a class the user may change: any for admins, their own for teachers. */
+  private async sessionFor(user: Profile, id: string) {
+    const session = await this.prisma.classSession.findUniqueOrThrow({
+      where: { id },
+      include: { batch: true },
+    });
+    if (user.role === 'TEACHER' && session.teacherId !== user.id)
+      throw new ForbiddenException('You can only change your own classes');
+    return session;
+  }
+
+  /** The class itself, or it and the later classes of its series (a teacher's own only). */
+  private async targets(user: Profile, current: ClassSession, scope?: Scope) {
+    if (scope !== 'following' || !current.seriesId) return [current];
+    return this.prisma.classSession.findMany({
+      where: {
+        seriesId: current.seriesId,
+        startsAt: { gte: current.startsAt },
+        teacherId: user.role === 'TEACHER' ? user.id : undefined,
+      },
+      orderBy: { startsAt: 'asc' },
+    });
   }
 
   /** The teacher's other classes that overlap any of the given times. */
   private async clashes(
     teacherId: string,
     intervals: Interval[],
-    excludeId?: string,
+    excludeIds: string[] = [],
   ) {
     const overlapping = await this.prisma.classSession.findMany({
       where: {
         teacherId,
-        id: excludeId ? { not: excludeId } : undefined,
+        id: { notIn: excludeIds },
         OR: intervals.map((i) => ({
           startsAt: { lt: i.endsAt },
           endsAt: { gt: i.startsAt },

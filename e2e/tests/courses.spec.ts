@@ -60,15 +60,19 @@ test('admin sets up a course with modules and an intake', async ({ page }) => {
   await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Nail Care & Hygiene')).toBeVisible();
 
-  // Intake with the suggested code
+  // Intake: the code follows the start year, numbered from 01 each year
   await page.getByRole('tab', { name: /Intakes/ }).click();
   await page.getByRole('button', { name: 'Start new intake' }).first().click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByLabel('Intake code')).toHaveValue(`${year}A`);
-  await expect(dialog).toContainText(`${code}${year}A001`);
+  const preview = dialog.getByTestId('batch-code-preview');
+  await expect(preview).toContainText(`Intake code ${year}/01`);
+  await expect(preview).toContainText(`WINT/${code}/${year}/01/001`);
+  await dialog.getByLabel('Start date').fill(`${year + 1}-01-05`);
+  await expect(preview).toContainText(`Intake code ${year + 1}/01`);
+  await dialog.getByLabel('Start date').fill(`${year}-12-01`);
   await dialog.getByRole('button', { name: 'Start intake' }).click();
   await expect(
-    page.getByText(`${code}${year}A`, { exact: true }),
+    page.getByText(`${code}/${year}/01`, { exact: true }),
   ).toBeVisible();
   await expect(page.getByText('Planned')).toBeVisible();
 
@@ -80,7 +84,7 @@ test('admin sets up a course with modules and an intake', async ({ page }) => {
   await expect(page.locator('li').getByText('Active')).toBeVisible();
 
   // Clean up through the UI: intake, then course
-  await page.getByRole('button', { name: `Delete intake ${year}A` }).click();
+  await page.getByRole('button', { name: `Delete intake ${year}/01` }).click();
   await page
     .getByRole('alertdialog')
     .getByRole('button', { name: 'Delete' })

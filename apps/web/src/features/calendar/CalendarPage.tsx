@@ -90,7 +90,7 @@ function toFullCalendar(
 
 /** One calendar for everyone: admins plan it, teachers and students see their part. */
 export function CalendarPage() {
-  const role = useAppSelector((s) => s.auth.user!.role);
+  const { role, id: userId } = useAppSelector((s) => s.auth.user!);
   const isAdmin = role === 'ADMIN';
   const isPhone = useMediaQuery('(max-width: 767px)');
   const [range, setRange] = useState<{ from: string; to: string }>();
@@ -146,7 +146,12 @@ export function CalendarPage() {
         ? `/${role.toLowerCase()}/attendance/${item.session.id}`
         : undefined,
     );
-    if (!isAdmin) setDetails(item);
+    // Admins edit everything; teachers edit their own classes; the rest is read-only.
+    const canEdit =
+      item.kind === 'session'
+        ? isAdmin || (role === 'TEACHER' && item.session.teacherId === userId)
+        : isAdmin;
+    if (!canEdit) setDetails(item);
     else if (item.kind === 'session')
       setSessionForm({ open: true, edit: item });
     else setEventForm({ open: true, edit: item });
@@ -288,19 +293,22 @@ export function CalendarPage() {
         />
       </div>
 
+      {role !== 'STUDENT' && (
+        <SessionFormDialog
+          open={sessionForm.open}
+          onOpenChange={(open) => setSessionForm((f) => ({ ...f, open }))}
+          session={
+            sessionForm.edit?.kind === 'session'
+              ? sessionForm.edit.session
+              : undefined
+          }
+          initial={sessionInitial}
+          attendanceHref={attendanceHref}
+          teacherView={!isAdmin}
+        />
+      )}
       {isAdmin && (
         <>
-          <SessionFormDialog
-            open={sessionForm.open}
-            onOpenChange={(open) => setSessionForm((f) => ({ ...f, open }))}
-            session={
-              sessionForm.edit?.kind === 'session'
-                ? sessionForm.edit.session
-                : undefined
-            }
-            initial={sessionInitial}
-            attendanceHref={attendanceHref}
-          />
           <EventFormDialog
             open={eventForm.open}
             onOpenChange={(open) => setEventForm((f) => ({ ...f, open }))}

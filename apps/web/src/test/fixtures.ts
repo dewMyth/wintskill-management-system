@@ -3,7 +3,7 @@ import type { Profile } from '@/features/auth/types';
 export const profile = (overrides: Partial<Profile> = {}): Profile => ({
   id: 'user-1',
   role: 'STUDENT',
-  username: 'HD2026A001',
+  username: 'WINT/HD/2026/01/001',
   fullName: 'Kavindi Silva',
   email: null,
   phone: null,
