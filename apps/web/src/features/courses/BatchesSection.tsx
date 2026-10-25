@@ -66,8 +66,7 @@ export function BatchesSection({ course }: { course: CourseDetail }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-mono font-semibold">
-                        {course.code}
-                        {batch.code}
+                        {course.code}/{batch.code}
                       </p>
                       <p className="truncate text-sm text-muted-foreground">
                         {batch.name}

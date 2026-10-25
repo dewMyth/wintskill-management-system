@@ -34,7 +34,7 @@ test('from a new course to a student reading their handout', async ({
   const code = `J${letters(4)}`;
   const courseName = `Journey ${code}`;
   const year = new Date().getFullYear();
-  const intake = `${code} ${year}A`;
+  const intake = `${code} ${year}/01`;
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
 
@@ -62,7 +62,7 @@ test('from a new course to a student reading their handout', async ({
     .getByRole('button', { name: 'Start intake' })
     .click();
   await expect(
-    page.getByText(`${code}${year}A`, { exact: true }),
+    page.getByText(`${code}/${year}/01`, { exact: true }),
   ).toBeVisible();
 
   // Admin: register a student.
@@ -88,7 +88,7 @@ test('from a new course to a student reading their handout', async ({
   const temporaryPassword = (await page
     .getByTestId('temporary-password')
     .textContent())!;
-  expect(registrationNo).toBe(`${code}${year}A001`);
+  expect(registrationNo).toBe(`WINT/${code}/${year}/01/001`);
 
   // Admin: a class yesterday evening with Nimali.
   await openNav(page, 'Calendar');
@@ -155,7 +155,7 @@ test('from a new course to a student reading their handout', async ({
   const handoutUrl = new URL(student.url()).pathname;
 
   // A student of another course cannot open it, even with the link.
-  const outsider = await signedIn(browser, 'HD2026A015');
+  const outsider = await signedIn(browser, 'WINT/HD/2026/01/015');
   await outsider.goto(handoutUrl);
   await expect(outsider.getByText('Could not load this page')).toBeVisible();
   await expect(outsider.locator('canvas')).toHaveCount(0);

@@ -79,9 +79,9 @@ export class ReorderModulesDto {
 const DATE = { strict: true, strictSeparator: true };
 
 export class CreateBatchDto {
-  @ToUpperCase()
+  @Trim()
   @Matches(BATCH_CODE, {
-    message: 'code must be the year and a letter, e.g. 2026A',
+    message: 'code must be the year and a 2-digit intake number, e.g. 2026/03',
   })
   code: string;
 

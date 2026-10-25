@@ -212,17 +212,17 @@ describe('batches', () => {
   it('suggests the next code and starts intakes with a counter', async () => {
     const course = await newCourse();
     let detail = await as(admin).get(`/courses/${course.id}`).expect(200);
-    expect(detail.body.nextBatchCode).toBe(`${year}A`);
+    expect(detail.body.nextBatchCode).toBe(`${year}/01`);
 
     const batch = await as(admin)
       .post(`/courses/${course.id}/batches`, {
-        code: `${year}a`,
+        code: ` ${year}/01 `,
         startDate: `${year}-09-01`,
       })
       .expect(201);
     expect(batch.body).toMatchObject({
-      code: `${year}A`,
-      name: `${course.code} ${year}A`,
+      code: `${year}/01`,
+      name: `${course.code} ${year}/01`,
       status: 'PLANNED',
     });
     expect(
@@ -232,9 +232,9 @@ describe('batches', () => {
     ).toMatchObject({ lastSeq: 0 });
 
     detail = await as(admin).get(`/courses/${course.id}`);
-    expect(detail.body.nextBatchCode).toBe(`${year}B`);
+    expect(detail.body.nextBatchCode).toBe(`${year}/02`);
     expect(detail.body.batches[0]).toMatchObject({
-      code: `${year}A`,
+      code: `${year}/01`,
       enrollmentCount: 0,
     });
   });
@@ -246,34 +246,34 @@ describe('batches', () => {
       .post(url, { code: '2026', startDate: '2026-01-01' })
       .expect(400);
     await as(admin)
-      .post(url, { code: '2026A', startDate: '01/01/2026' })
+      .post(url, { code: '2026/01', startDate: '01/01/2026' })
       .expect(400);
     await as(admin)
       .post(url, {
-        code: '2026A',
+        code: '2026/01',
         startDate: '2026-06-01',
         endDate: '2026-05-01',
       })
       .expect(400);
     await as(admin)
-      .post(url, { code: '2026A', startDate: '2026-01-01' })
+      .post(url, { code: '2026/01', startDate: '2026-01-01' })
       .expect(201);
     const dup = await as(admin)
-      .post(url, { code: '2026A', startDate: '2026-01-01' })
+      .post(url, { code: '2026/01', startDate: '2026-01-01' })
       .expect(409);
     expect(dup.body.message).toBe(
-      `Batch 2026A already exists for ${course.code}`,
+      `Batch 2026/01 already exists for ${course.code}`,
     );
   });
 
   it('updates name, dates and status but not the code', async () => {
     const course = await newCourse();
     const batch = await as(admin).post(`/courses/${course.id}/batches`, {
-      code: '2026A',
+      code: '2026/01',
       startDate: '2026-01-01',
     });
     await as(admin)
-      .patch(`/batches/${batch.body.id}`, { code: '2026B' })
+      .patch(`/batches/${batch.body.id}`, { code: '2026/02' })
       .expect(400);
     await as(admin)
       .patch(`/batches/${batch.body.id}`, { endDate: '2025-12-31' })
@@ -286,7 +286,7 @@ describe('batches', () => {
       })
       .expect(200);
     expect(res.body).toMatchObject({
-      code: '2026A',
+      code: '2026/01',
       name: 'January intake',
       status: 'ACTIVE',
     });
@@ -302,7 +302,7 @@ describe('deleting with dependants', () => {
       title: 'Module',
     });
     const batch = await as(admin).post(`/courses/${course.id}/batches`, {
-      code: '2026A',
+      code: '2026/01',
       startDate: '2026-01-01',
     });
 
@@ -319,7 +319,7 @@ describe('deleting with dependants', () => {
       data: {
         studentId: s.id,
         batchId: batch.body.id,
-        registrationNo: `${course.code}2026A001`,
+        registrationNo: `WINT/${course.code}/2026/01/001`,
       },
     });
 
@@ -344,7 +344,7 @@ describe('deleting with dependants', () => {
       title: 'Module',
     });
     const batch = await as(admin).post(`/courses/${course.id}/batches`, {
-      code: '2026A',
+      code: '2026/01',
       startDate: '2026-01-01',
     });
     await as(admin).delete(`/batches/${batch.body.id}`).expect(204);
@@ -369,7 +369,7 @@ describe('access', () => {
       .expect(403);
     await as(teacher)
       .post(`/courses/${course.id}/batches`, {
-        code: '2026A',
+        code: '2026/01',
         startDate: '2026-01-01',
       })
       .expect(403);

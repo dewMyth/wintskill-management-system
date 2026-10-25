@@ -86,7 +86,7 @@ Profile        id (= Supabase auth user id), role, username (unique, login), ful
                email? (contact only), phone (mobile), avatarPath, isActive, mustChangePassword
 Course         id, code (unique, e.g. HSC), name, description, isActive
 Module         id, courseId, code (unique per course), title, sortOrder
-Batch          id, courseId, code (YYYY + letter, e.g. 2026A; unique per course), name,
+Batch          id, courseId, code (YYYY/NN: intake year + that year's intake number for the course, e.g. 2026/03; unique per course), name,
                startDate, endDate, status (PLANNED|ACTIVE|COMPLETED)
 BatchCounter   batchId (pk), lastSeq          -- backs registration number generation
 
@@ -135,15 +135,15 @@ export interface RegistrationNumberGenerator {
 export const REGISTRATION_NUMBER_GENERATOR = Symbol('REGISTRATION_NUMBER_GENERATOR');
 ```
 
-The default `CourseBatchSequenceGenerator` builds `${course.code}${batch.code}${seq.padStart(3,'0')}`, which gives `HSC2026A001`.
+The default `CourseBatchSequenceGenerator` builds `WINT/${course.code}/${batch.code}/${seq.padStart(3,'0')}`, which gives `WINT/BB/2026/03/092`: company code, course code, the year the intake started (even for a student who registers the next year), the intake number, and the student's number in that intake.
 `seq` comes from an atomic `UPDATE BatchCounter SET lastSeq = lastSeq + 1 ... RETURNING lastSeq` inside the enrollment transaction, so concurrent registrations never collide. To change the format later, write a new class and swap the provider in `EnrollmentsModule`. Nothing else changes.
 
 ### Accounts and passwords
 - **Everyone logs in with a username, not an email.**
-  - **Students:** the username is the registration number from their **first** enrollment (e.g. `HSC2026A001`). It never changes, even when they enroll in more courses, and it is shown on their profile.
+  - **Students:** the username is the registration number from their **first** enrollment (e.g. `WINT/BB/2026/03/092`). At login the `WINT/` prefix is optional, `-`, `.` or spaces can stand in for `/`, and leading zeros can be left out (`bb-2026-3-92` works). It never changes, even when they enroll in more courses, and it is shown on their profile.
   - **Teachers and admins:** the admin chooses a username (e.g. `nimali.p`).
   - Usernames are case-insensitive and stored in uppercase for students and lowercase for staff.
-- Supabase Auth requires an email, so each account gets an internal address `<username>@users.wintskill.local` that nobody sees. It never receives mail and is derived from the username, so the login form converts the username before calling `signInWithPassword`. A student's real email stays optional contact data, and changing it never affects login.
+- Supabase Auth requires an email, so each account gets an internal address `<username>@users.wintskill.local` (slashes become dots: `wint.bb.2026.03.092@…`) that nobody sees. It never receives mail and is derived from the username, so the login form converts the username before calling `signInWithPassword`. A student's real email stays optional contact data, and changing it never affects login.
 - The admin creates a student or teacher account. The API calls `supabase.auth.admin.createUser({ email: internalEmail(username), password, email_confirm: true })` with a 12-character temporary password from `crypto.randomInt`, and returns it **once**. The UI shows the username and password in a dialog with a copy button.
 - `mustChangePassword = true` until the user sets their own password. While it is set, `AuthGuard` returns `403 PASSWORD_CHANGE_REQUIRED` for everything except `GET /me` and `POST /me/password`, and the web app redirects to `/change-password`.
 - "Reset password" on any user page issues a new temporary password the same way.
@@ -234,12 +234,12 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 
 ### Phase 3 — Courses, modules, batches (Admin)
 - CRUD: courses (code, name), modules per course (code, title, order), batches per course
-- "Start new batch intake": the batch code defaults to the next free letter for the current year (`2026A` → `2026B`), and the admin can edit it. Creating the batch also creates its `BatchCounter`
+- "Start new batch intake": the batch code defaults to the next free intake number for the current year (`2026/02` → `2026/03`), and the admin can edit it. Creating the batch also creates its `BatchCounter`
 - Soft-deactivate instead of delete when a course or batch has dependants
 
 **Success criteria**
 - [x] Course codes are unique; module codes and batch codes are unique per course (DB constraint + friendly 409 message)
-- [x] Batch code must match `^\d{4}[A-Z]$`; suggested next code is unit tested
+- [x] Batch code must match `^\d{4}/\d{2}$` (intake 01–99); suggested next code is unit tested
 - [x] Non-admin calls return 403 (tested)
 - [x] Service behaviour covered by API tests against the database (pure logic unit tested); UI works at 360px
 
@@ -257,7 +257,7 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 - **Teachers**: admin creates them (username, name, phone, optional email, photo; username + temporary password shown once), edits, deactivates and resets their passwords
 
 **Success criteria**
-- [x] First enrollment in HSC/2026A gets `HSC2026A001`, second `HSC2026A002`; 20 parallel enrollments produce 20 unique, gap-free numbers (test)
+- [x] First enrollment in BB 2026/03 gets `WINT/BB/2026/03/001`, second `WINT/BB/2026/03/002`; 20 parallel enrollments produce 20 unique, gap-free numbers (test)
 - [x] Generator swapped via provider in a unit test without touching `EnrollmentsService`
 - [x] Same NIC cannot create a second student; same student cannot enroll twice in one batch (409)
 - [x] A returning student enrolled in a second course gets a new number and keeps the same login (their first number)

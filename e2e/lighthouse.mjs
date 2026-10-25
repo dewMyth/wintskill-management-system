@@ -58,7 +58,9 @@ async function audit(name, url) {
 let ok = await audit('Sign-in page', `${base}/login`);
 
 await page.goto(`${base}/login`);
-await page.getByLabel('Username').fill(process.env.LH_USER ?? 'HD2026A020');
+await page
+  .getByLabel('Username')
+  .fill(process.env.LH_USER ?? 'WINT/HD/2026/01/020');
 await page
   .getByLabel('Password', { exact: true })
   .fill(process.env.LH_PASSWORD ?? 'Password123!');

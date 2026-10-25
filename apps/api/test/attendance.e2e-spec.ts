@@ -95,8 +95,8 @@ beforeAll(async () => {
       },
       batches: {
         create: [
-          { code: '2026A', name: 'A', startDate: new Date('2026-01-01') },
-          { code: '2026B', name: 'B', startDate: new Date('2026-01-01') },
+          { code: '2026/01', name: 'A', startDate: new Date('2026-01-01') },
+          { code: '2026/02', name: 'B', startDate: new Date('2026-01-01') },
         ],
       },
     },
@@ -109,18 +109,26 @@ beforeAll(async () => {
   modules = course.modules;
   batchId = course.batches[0].id;
   enrollments = [
-    await addStudent('Amaya Perera', batchId, `${code}2026A001`),
-    await addStudent('Perera, Bimali', batchId, `${code}2026A002`),
-    await addStudent('=HYPERLINK("http://x")', batchId, `${code}2026A003`),
+    await addStudent('Amaya Perera', batchId, `WINT/${code}/2026/01/001`),
+    await addStudent('Perera, Bimali', batchId, `WINT/${code}/2026/01/002`),
+    await addStudent(
+      '=HYPERLINK("http://x")',
+      batchId,
+      `WINT/${code}/2026/01/003`,
+    ),
   ];
   await addStudent(
     'Withdrawn Student',
     batchId,
-    `${code}2026A004`,
+    `WINT/${code}/2026/01/004`,
     'WITHDRAWN',
   );
   otherBatchEnrollmentId = (
-    await addStudent('Other Intake', course.batches[1].id, `${code}2026B001`)
+    await addStudent(
+      'Other Intake',
+      course.batches[1].id,
+      `WINT/${code}/2026/02/001`,
+    )
   ).id;
 
   const now = Date.now();
@@ -308,14 +316,14 @@ describe('report', () => {
       .expect(200);
     expect(res.headers['content-type']).toBe('text/csv; charset=utf-8');
     expect(res.headers['content-disposition']).toMatch(
-      /^attachment; filename="attendance-A[A-Z]{4}2026A\.csv"$/,
+      /^attachment; filename="attendance-A[A-Z]{4}-2026-01\.csv"$/,
     );
     const lines = res.text.replace('﻿', '').split('\r\n');
     expect(lines[0]).toBe(
       'Registration no,Name,Enrollment,Present,Late,Absent,Excused,Attendance %,M01 %,M02 %',
     );
     expect(lines[1]).toMatch(
-      /^A[A-Z]{4}2026A001,Amaya Perera,ACTIVE,2,0,0,0,100,100,100$/,
+      /^WINT\/A[A-Z]{4}\/2026\/01\/001,Amaya Perera,ACTIVE,2,0,0,0,100,100,100$/,
     );
     expect(lines[2]).toContain(',"Perera, Bimali",');
     expect(lines[3]).toContain(`,"'=HYPERLINK(""http://x"")",`);

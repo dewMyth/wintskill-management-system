@@ -57,7 +57,7 @@ async function newBatch(status: 'ACTIVE' | 'COMPLETED' = 'ACTIVE') {
       modules: { create: { code: 'M01', title: 'Module one' } },
       batches: {
         create: {
-          code: '2031A',
+          code: '2031/01',
           name: 'Test',
           startDate: new Date('2031-01-01'),
           status,
@@ -142,7 +142,7 @@ describe('class sessions', () => {
       venue: 'Hall A',
       module: { code: 'M01' },
       teacher: { id: teacher.id },
-      batch: { code: '2031A' },
+      batch: { code: '2031/01' },
     });
 
     const feed = await api(admin)
@@ -204,7 +204,7 @@ describe('class sessions', () => {
       .expect(201);
     expect(clash.body.clashes).toEqual([
       expect.objectContaining({
-        batch: `${a.code} 2031A`,
+        batch: `${a.code} 2031/01`,
         startsAt: '2031-03-05T03:30:00.000Z',
       }),
     ]);
@@ -319,17 +319,17 @@ describe('who sees what', () => {
         {
           studentId: s.id,
           batchId: mine1.batchId,
-          registrationNo: `${mine1.code}2031A001`,
+          registrationNo: `WINT/${mine1.code}/2031/01/001`,
         },
         {
           studentId: s.id,
           batchId: mine2.batchId,
-          registrationNo: `${mine2.code}2031A001`,
+          registrationNo: `WINT/${mine2.code}/2031/01/001`,
         },
         {
           studentId: s.id,
           batchId: withdrawn.batchId,
-          registrationNo: `${withdrawn.code}2031A001`,
+          registrationNo: `WINT/${withdrawn.code}/2031/01/001`,
           status: 'WITHDRAWN',
         },
       ],

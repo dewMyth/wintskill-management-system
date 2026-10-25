@@ -7,7 +7,7 @@
  * Unlike the dev seed it never deletes real data and needs the real courses
  * (db:seed:courses). Everything it adds is recognisable, so `remove` finds it:
  * staff usernames start with `sample.`, intakes are named `[Sample] …` with
- * 2020 codes (HD2020Z001 …), and loose events and files are titled `[Sample] …`.
+ * 2020 codes (WINT/HD/2020/99/001 …), and loose events and files are titled `[Sample] …`.
  * `remove` also deletes anything else in the sample intakes or made by the
  * sample staff, e.g. students you registered into a sample intake while testing.
  */
@@ -27,7 +27,7 @@ import { samplePdf } from './sample-pdf.js';
 const TAG = '[Sample]';
 const STAFF_PREFIX = 'sample.';
 const SAMPLE_LOGIN =
-  /^(sample\.[^@]+|[a-z]{2,6}2020[yz]\d{3})@users\.wintskill\.local$/;
+  /^(sample\.[^@]+|wint\.[a-z]{2,6}\.2020\.9[89]\.\d{3})@users\.wintskill\.local$/;
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
   'base64',
@@ -172,26 +172,26 @@ async function add() {
         ...data,
       },
     });
-  const hdActive = await batch(hd.id, '2020Z', 'Hair Dressing intake', {
+  const hdActive = await batch(hd.id, '2020/99', 'Hair Dressing intake', {
     startDate: new Date(date(-42)),
     endDate: new Date(date(140)),
     status: 'ACTIVE',
   });
-  const btActive = await batch(bt.id, '2020Z', 'Beautician intake', {
+  const btActive = await batch(bt.id, '2020/99', 'Beautician intake', {
     startDate: new Date(date(-21)),
     status: 'ACTIVE',
   });
-  const hdDone = await batch(hd.id, '2020Y', 'Hair Dressing 2025', {
+  const hdDone = await batch(hd.id, '2020/98', 'Hair Dressing 2025', {
     startDate: new Date('2025-02-03'),
     endDate: new Date('2025-08-29'),
     status: 'COMPLETED',
   });
-  await batch(bd.id, '2020Z', 'Bridal Dressing intake', {
+  await batch(bd.id, '2020/99', 'Bridal Dressing intake', {
     startDate: new Date(date(35)),
     status: 'PLANNED',
   });
 
-  // Students. Registration numbers follow the app's format: course + intake code + sequence.
+  // Students. Registration numbers follow the app's format: WINT / course / intake code / sequence.
   const towns = [
     'Kottawa',
     'Maharagama',
@@ -296,7 +296,7 @@ async function add() {
       data: {
         studentId,
         batchId: b.id,
-        registrationNo: `${courseCode}${b.code}${String(lastSeq).padStart(3, '0')}`,
+        registrationNo: `WINT/${courseCode}/${b.code}/${String(lastSeq).padStart(3, '0')}`,
         status,
       },
     });
@@ -308,7 +308,7 @@ async function add() {
     const { lastSeq } = await prisma.batchCounter.findUniqueOrThrow({
       where: { batchId: b.id },
     });
-    return `${courseCode}${b.code}${String(lastSeq + 1).padStart(3, '0')}`;
+    return `WINT/${courseCode}/${b.code}/${String(lastSeq + 1).padStart(3, '0')}`;
   };
 
   // 12 in the running HD intake (the 12th withdrew); the first two also take Beautician.

@@ -81,7 +81,7 @@ export function CourseFormDialog({
         <TextField
           id="course-code"
           label="Course code"
-          description="Starts every registration number, e.g. HD → HD2026A001. Cannot be changed later."
+          description="Starts every registration number, e.g. HD → WINT/HD/2026/01/001. Cannot be changed later."
           maxLength={6}
           autoCapitalize="characters"
           className="h-11 uppercase"

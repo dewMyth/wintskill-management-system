@@ -41,7 +41,7 @@ const api = (user: TestUser) => ({
     request(server).put(`/api/v1${url}`).auth(user.token, { type: 'bearer' }),
 });
 
-/** A fresh course with one open intake (2026A). */
+/** A fresh course with one open intake (2026/01). */
 async function newCourse(status: 'ACTIVE' | 'COMPLETED' = 'ACTIVE') {
   const code = `R${randomLetters(4)}`;
   const course = await prisma.course.create({
@@ -50,7 +50,7 @@ async function newCourse(status: 'ACTIVE' | 'COMPLETED' = 'ACTIVE') {
       name: `Test ${code}`,
       batches: {
         create: {
-          code: '2026A',
+          code: '2026/01',
           name: 'Test',
           startDate: new Date('2026-01-01'),
           status,
@@ -78,7 +78,9 @@ const studentForm = (batchId: string, overrides: object = {}) => ({
 
 async function authUsersFor(code: string) {
   const { data } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-  return data.users.filter((u) => u.email?.startsWith(code.toLowerCase()));
+  return data.users.filter((u) =>
+    u.email?.startsWith(`wint.${code.toLowerCase()}.`),
+  );
 }
 
 beforeAll(async () => {
@@ -123,8 +125,8 @@ describe('registration', () => {
     const second = await api(admin)
       .post('/students', studentForm(course.batchId))
       .expect(201);
-    expect(first.body.registrationNo).toBe(`${course.code}2026A001`);
-    expect(second.body.registrationNo).toBe(`${course.code}2026A002`);
+    expect(first.body.registrationNo).toBe(`WINT/${course.code}/2026/01/001`);
+    expect(second.body.registrationNo).toBe(`WINT/${course.code}/2026/01/002`);
     expect(first.body.username).toBe(first.body.registrationNo);
     expect(first.body.profileId).toMatch(/^[0-9a-f-]{36}$/);
     expect(first.body.temporaryPassword).toMatch(/^\w{12}$/);
@@ -143,6 +145,11 @@ describe('registration', () => {
       username: first.body.registrationNo,
       mustChangePassword: true,
     });
+    // Also without the WINT prefix and with dashes, as typed on a phone.
+    await signIn(
+      first.body.username.replace('WINT/', '').replaceAll('/', '-'),
+      first.body.temporaryPassword,
+    );
   });
 
   it('gives 20 parallel registrations 20 unique, gap-free numbers', async () => {
@@ -157,7 +164,8 @@ describe('registration', () => {
     expect(numbers).toEqual(
       Array.from(
         { length: 20 },
-        (_, i) => `${course.code}2026A${String(i + 1).padStart(3, '0')}`,
+        (_, i) =>
+          `WINT/${course.code}/2026/01/${String(i + 1).padStart(3, '0')}`,
       ),
     );
   });
@@ -203,7 +211,7 @@ describe('registration', () => {
         {
           registrationNo: res.body.registrationNo,
           status: 'ACTIVE',
-          batch: { code: '2026A' },
+          batch: { code: '2026/01' },
         },
       ],
     });
@@ -309,7 +317,7 @@ describe('returning students', () => {
         batchId: btc.batchId,
       })
       .expect(201);
-    expect(second.body.registrationNo).toBe(`${btc.code}2026A001`);
+    expect(second.body.registrationNo).toBe(`WINT/${btc.code}/2026/01/001`);
 
     const detail = await api(admin).get(`/students/${reg.body.studentId}`);
     expect(detail.body.username).toBe(reg.body.registrationNo);

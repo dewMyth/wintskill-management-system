@@ -12,7 +12,7 @@ test.describe('small phone (360px)', () => {
 
   for (const [username, home] of [
     ['admin', '/admin'],
-    ['HD2026A001', '/student'],
+    ['WINT/HD/2026/01/001', '/student'],
   ]) {
     test(`${home} and account pages fit and are easy to tap`, async ({
       page,

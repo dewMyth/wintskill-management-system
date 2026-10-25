@@ -66,7 +66,7 @@ test('admin adds a weekly class that appears in the calendar', async ({
       : ['18:00', '19:00'];
   await openCalendar(page, 'admin');
   await addClass(page, {
-    intake: /HD 2026A/,
+    intake: /HD 2026\/01/,
     teacher: 'Nimali Perera',
     date: today(),
     start,
@@ -83,7 +83,7 @@ test('a double-booked teacher is flagged', async ({ page }, testInfo) => {
   const date = testInfo.project.name === 'mobile' ? '2031-05-05' : '2031-05-06';
   await openCalendar(page, 'admin');
   await addClass(page, {
-    intake: /HD 2026A/,
+    intake: /HD 2026\/01/,
     teacher: 'Ruwani Jayawardena',
     date,
     start: '10:00',
@@ -91,14 +91,14 @@ test('a double-booked teacher is flagged', async ({ page }, testInfo) => {
   });
   await expect(page.getByText('Class added')).toBeVisible();
   await addClass(page, {
-    intake: /BT 2026A/,
+    intake: /BT 2026\/01/,
     teacher: 'Ruwani Jayawardena',
     date,
     start: '11:00',
     end: '13:00',
   });
   await expect(
-    page.getByText('Ruwani Jayawardena is already teaching HD 2026A then'),
+    page.getByText('Ruwani Jayawardena is already teaching HD 2026/01 then'),
   ).toBeVisible();
 });
 
@@ -153,12 +153,12 @@ test('an academy holiday shows for students', async ({ page, browser }) => {
   await expect(page.getByText('Event added')).toBeVisible();
 
   const student = await (await browser.newContext()).newPage();
-  await openCalendar(student, 'HD2026A002');
+  await openCalendar(student, 'WINT/HD/2026/01/002');
   await expect(student.getByText(title)).toBeVisible();
 });
 
 test('students see only their own intake, read-only', async ({ page }) => {
-  await openCalendar(page, 'HD2026A002');
+  await openCalendar(page, 'WINT/HD/2026/01/002');
   await expect(page.getByRole('button', { name: 'Add class' })).toHaveCount(0);
   await expect(
     page

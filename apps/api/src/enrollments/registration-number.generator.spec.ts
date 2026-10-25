@@ -11,16 +11,16 @@ function txWithCounter(start: number) {
 }
 
 const ctx = {
-  course: { code: 'HSC' } as Course,
-  batch: { id: 'b1', code: '2026A' } as Batch,
+  course: { code: 'BB' } as Course,
+  batch: { id: 'b1', code: '2026/03' } as Batch,
 };
 
 describe('CourseBatchSequenceGenerator', () => {
-  it('builds course code + batch code + 3-digit sequence', async () => {
+  it('builds WINT / course code / batch code / 3-digit sequence', async () => {
     const { tx, update } = txWithCounter(0);
     const generator = new CourseBatchSequenceGenerator();
-    await expect(generator.next(tx, ctx)).resolves.toBe('HSC2026A001');
-    await expect(generator.next(tx, ctx)).resolves.toBe('HSC2026A002');
+    await expect(generator.next(tx, ctx)).resolves.toBe('WINT/BB/2026/03/001');
+    await expect(generator.next(tx, ctx)).resolves.toBe('WINT/BB/2026/03/002');
     expect(update).toHaveBeenCalledWith({
       where: { batchId: 'b1' },
       data: { lastSeq: { increment: 1 } },
@@ -31,6 +31,6 @@ describe('CourseBatchSequenceGenerator', () => {
     const { tx } = txWithCounter(999);
     await expect(
       new CourseBatchSequenceGenerator().next(tx, ctx),
-    ).resolves.toBe('HSC2026A1000');
+    ).resolves.toBe('WINT/BB/2026/03/1000');
   });
 });

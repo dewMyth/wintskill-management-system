@@ -28,8 +28,10 @@ const schema = z
     code: z
       .string()
       .trim()
-      .toUpperCase()
-      .regex(/^\d{4}[A-Z]$/, 'Year and a letter, e.g. 2026A'),
+      .regex(
+        /^\d{4}\/(0[1-9]|[1-9]\d)$/,
+        'Year and a 2-digit intake number, e.g. 2026/03',
+      ),
     name: z.string().trim().max(120),
     startDate: z.string().min(1, 'Choose the start date'),
     endDate: z.string(),
@@ -106,7 +108,7 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
       description={
         batch
           ? undefined
-          : `Students in this intake get numbers like ${course.code}${code || '2026A'}001.`
+          : `Students in this intake get numbers like WINT/${course.code}/${code || '2026/01'}/001.`
       }
       submitLabel={batch ? 'Save' : 'Start intake'}
       onSubmit={form.handleSubmit(onSubmit)}
@@ -117,10 +119,9 @@ export function BatchFormDialog({ open, onOpenChange, course, batch }: Props) {
         <TextField
           id="batch-code"
           label="Intake code"
-          description="Year and a letter. The next free code is filled in. Cannot be changed later."
-          maxLength={5}
-          autoCapitalize="characters"
-          className="h-11 uppercase"
+          description="Intake year / this year's intake number for the course. The next free code is filled in. Cannot be changed later."
+          maxLength={7}
+          className="h-11"
           error={errors.code}
           {...form.register('code')}
         />

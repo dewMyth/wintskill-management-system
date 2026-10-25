@@ -52,13 +52,13 @@ beforeAll(async () => {
       batches: {
         create: [
           {
-            code: '2026A',
+            code: '2026/01',
             name: 'A',
             startDate: new Date('2026-01-01'),
             status: 'ACTIVE',
           },
           {
-            code: '2026B',
+            code: '2026/02',
             name: 'B',
             startDate: new Date('2026-01-01'),
             status: 'ACTIVE',
@@ -86,7 +86,11 @@ beforeAll(async () => {
   });
   ids.mine = (
     await prisma.enrollment.create({
-      data: { studentId: me.id, batchId, registrationNo: `${code}2026A001` },
+      data: {
+        studentId: me.id,
+        batchId,
+        registrationNo: `WINT/${code}/2026/01/001`,
+      },
     })
   ).id;
   // A withdrawn enrollment must not appear on the student's dashboard.
@@ -94,7 +98,7 @@ beforeAll(async () => {
     data: {
       studentId: me.id,
       batchId: course.batches[1].id,
-      registrationNo: `${code}2026B001`,
+      registrationNo: `WINT/${code}/2026/02/001`,
       status: 'WITHDRAWN',
     },
   });
@@ -108,7 +112,7 @@ beforeAll(async () => {
         create: {
           id: otherProfileId,
           role: 'STUDENT',
-          username: `${code}2026A002`,
+          username: `WINT/${code}/2026/01/002`,
           fullName: 'Often Absent',
         },
       },
@@ -116,7 +120,11 @@ beforeAll(async () => {
   });
   ids.other = (
     await prisma.enrollment.create({
-      data: { studentId: other.id, batchId, registrationNo: `${code}2026A002` },
+      data: {
+        studentId: other.id,
+        batchId,
+        registrationNo: `WINT/${code}/2026/01/002`,
+      },
     })
   ).id;
 
@@ -240,8 +248,8 @@ describe('admin dashboard', () => {
     expect(body.lowAttendance).toContainEqual(
       expect.objectContaining({
         fullName: 'Often Absent',
-        registrationNo: `${code}2026A002`,
-        batch: `${code} 2026A`,
+        registrationNo: `WINT/${code}/2026/01/002`,
+        batch: `${code} 2026/01`,
         percentage: 0,
       }),
     );
@@ -249,7 +257,7 @@ describe('admin dashboard', () => {
       body.lowAttendance.map(
         (l: { registrationNo: string }) => l.registrationNo,
       ),
-    ).not.toContain(`${code}2026A001`);
+    ).not.toContain(`WINT/${code}/2026/01/001`);
   });
 });
 
@@ -279,7 +287,7 @@ describe('student dashboard', () => {
         ? ids.today
         : ids.upcoming;
     expect(course).toMatchObject({
-      registrationNo: `${code}2026A001`,
+      registrationNo: `WINT/${code}/2026/01/001`,
       course: { code },
       nextClass: { id: expectedNext },
       attendance: { present: 1, late: 1, absent: 0, percentage: 100 },
