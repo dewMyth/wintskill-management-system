@@ -227,6 +227,27 @@ export class StudentsService {
     };
   }
 
+  /**
+   * Deletes the student for good: attendance, enrollments, qualifications, profile, login and
+   * photo. Their registration numbers are not reused.
+   */
+  async remove(id: string) {
+    const student = await this.prisma.student.findUniqueOrThrow({
+      where: { id },
+      include: { profile: true },
+    });
+    await this.prisma.$transaction([
+      this.prisma.attendance.deleteMany({
+        where: { enrollment: { studentId: id } },
+      }),
+      this.prisma.enrollment.deleteMany({ where: { studentId: id } }),
+      this.prisma.student.delete({ where: { id } }),
+      this.prisma.profile.delete({ where: { id: student.profileId } }),
+    ]);
+    await this.accounts.deleteLogin(student.profileId);
+    await this.accounts.deletePhoto(student.profile.avatarPath);
+  }
+
   /** Summary for the registration wizard's "find by NIC" step. */
   async findByNic(nicOrPassport: string) {
     const student = await this.prisma.student.findUnique({

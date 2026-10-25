@@ -41,6 +41,10 @@ test('dark mode is remembered', async ({ page }) => {
   await page.getByRole('button', { name: 'Open user menu' }).click();
   await page.getByRole('menuitem', { name: 'Dark mode' }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
+  // redux-persist saves a moment later; reloading before that would lose the choice.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('persist:wintskill')))
+    .toContain('dark');
   await page.reload();
   await expect(page.locator('html')).toHaveClass(/dark/);
 });

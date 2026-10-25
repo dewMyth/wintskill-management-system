@@ -39,6 +39,10 @@ const api = (user: TestUser) => ({
       .send(body),
   put: (url: string) =>
     request(server).put(`/api/v1${url}`).auth(user.token, { type: 'bearer' }),
+  delete: (url: string) =>
+    request(server)
+      .delete(`/api/v1${url}`)
+      .auth(user.token, { type: 'bearer' }),
 });
 
 /** A fresh course with one open intake (2026/01). */
@@ -538,10 +542,61 @@ describe('accounts', () => {
   });
 });
 
+describe('deleting', () => {
+  it('removes the student, their attendance, enrollments and login, and does not reuse the number', async () => {
+    const course = await newCourse();
+    const reg = await api(admin)
+      .post('/students', studentForm(course.batchId))
+      .expect(201);
+    const enrollment = await prisma.enrollment.findUniqueOrThrow({
+      where: { registrationNo: reg.body.registrationNo },
+    });
+    const session = await prisma.classSession.create({
+      data: {
+        batchId: course.batchId,
+        teacherId: teacher.id,
+        startsAt: new Date('2026-02-02T09:00:00+05:30'),
+        endsAt: new Date('2026-02-02T12:00:00+05:30'),
+      },
+    });
+    await prisma.attendance.create({
+      data: {
+        sessionId: session.id,
+        enrollmentId: enrollment.id,
+        status: 'PRESENT',
+        markedById: teacher.id,
+      },
+    });
+
+    await api(admin).delete(`/students/${reg.body.studentId}`).expect(204);
+    expect(
+      await Promise.all([
+        prisma.student.count({ where: { id: reg.body.studentId } }),
+        prisma.profile.count({ where: { id: reg.body.profileId } }),
+        prisma.enrollment.count({ where: { id: enrollment.id } }),
+        prisma.attendance.count({ where: { sessionId: session.id } }),
+        prisma.qualification.count({
+          where: { studentId: reg.body.studentId },
+        }),
+      ]),
+    ).toEqual([0, 0, 0, 0, 0]);
+    expect(await authUsersFor(course.code)).toHaveLength(0);
+    await api(admin).get(`/students/${reg.body.studentId}`).expect(404);
+    await api(admin).delete(`/students/${reg.body.studentId}`).expect(404);
+
+    const next = await api(admin)
+      .post('/students', studentForm(course.batchId))
+      .expect(201);
+    expect(next.body.registrationNo).toBe(`WINT/${course.code}/2026/01/002`);
+    await prisma.classSession.delete({ where: { id: session.id } });
+  });
+});
+
 describe('access', () => {
   it('only admins can manage students and accounts', async () => {
     await api(teacher).get('/students').expect(403);
     await api(teacher).post('/students', {}).expect(403);
+    await api(teacher).delete(`/students/${admin.id}`).expect(403);
     await api(teacher).post(`/accounts/${admin.id}/reset-password`).expect(403);
     await api(teacher)
       .patch(`/accounts/${admin.id}/status`, { isActive: false })

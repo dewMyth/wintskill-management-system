@@ -1,7 +1,8 @@
-import { ArrowLeftIcon, PencilIcon, PlusIcon } from 'lucide-react';
+import { ArrowLeftIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ListSkeleton, LoadError } from '@/components/LoadState';
 import { PhotoPicker } from '@/components/PhotoPicker';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ import { formatDate } from '@/lib/format';
 import { errorMessage } from '@/services/api';
 import { EnrollDialog } from './EnrollDialog';
 import {
+  useDeleteStudentMutation,
   useGetStudentQuery,
   useUpdateEnrollmentMutation,
 } from './students-api';
@@ -80,7 +82,10 @@ export function StudentDetailPage() {
   const { currentData: student, error, refetch } = useGetStudentQuery(id);
   const [uploadPhoto, { isLoading: uploading }] = useUploadPhotoMutation();
   const [updateEnrollment] = useUpdateEnrollmentMutation();
+  const [deleteStudent] = useDeleteStudentMutation();
   const [enrolling, setEnrolling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const back = (
     <Button asChild variant="ghost" className="mb-2 min-h-11 -ml-3">
@@ -108,6 +113,17 @@ export function StudentDetailPage() {
     const result = await uploadPhoto({ profileId: student.profileId, file });
     if (result.error) toast.error(errorMessage(result.error));
     else toast.success('Photo updated');
+  };
+
+  const remove = async () => {
+    setDeleting(false);
+    const result = await deleteStudent(student.id);
+    if (result.error) {
+      toast.error(errorMessage(result.error));
+      return;
+    }
+    toast.success(`${student.fullName} was deleted`);
+    navigate('..', { relative: 'path' });
   };
 
   const changeStatus = async (
@@ -157,6 +173,13 @@ export function StudentDetailPage() {
             <Link to="edit">
               <PencilIcon /> Edit
             </Link>
+          </Button>
+          <Button
+            variant="outline"
+            className="min-h-11 text-destructive"
+            onClick={() => setDeleting(true)}
+          >
+            <Trash2Icon /> Delete
           </Button>
           <AccountActions
             profileId={student.profileId}
@@ -295,6 +318,15 @@ export function StudentDetailPage() {
         open={enrolling}
         onOpenChange={setEnrolling}
         student={student}
+      />
+      <ConfirmDialog
+        open={deleting}
+        onOpenChange={setDeleting}
+        title={`Delete ${student.fullName}?`}
+        description={`This permanently deletes their login, details, ${student.enrollments.length === 1 ? 'course enrollment' : `${student.enrollments.length} course enrollments`} and attendance records. Their registration ${student.enrollments.length === 1 ? 'number' : 'numbers'} (${student.enrollments.map((e) => e.registrationNo).join(', ')}) will not be given to anyone else. This cannot be undone.`}
+        confirmLabel="Delete student"
+        destructive
+        onConfirm={remove}
       />
     </>
   );

@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -48,6 +50,12 @@ export class StudentsController {
     @Body() dto: UpdateStudentDto,
   ) {
     return this.students.update(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.students.remove(id);
   }
 
   @Post(':id/enrollments')

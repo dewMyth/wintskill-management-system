@@ -58,6 +58,7 @@ const matrix: [Method, string, Role[]][] = [
   ['get', '/students/by-nic/X12345', A],
   ['get', `/students/${id}`, A],
   ['post', '/students', A],
+  ['delete', `/students/${id}`, A],
   ['patch', `/students/${id}`, A],
   ['post', `/students/${id}/enrollments`, A],
   ['patch', `/enrollments/${id}`, A],

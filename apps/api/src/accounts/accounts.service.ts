@@ -39,6 +39,10 @@ export class AccountsService {
     await this.supabase.auth.admin.deleteUser(userId);
   }
 
+  async deletePhoto(path: string | null) {
+    if (path) await this.supabase.storage.from(AVATARS).remove([path]);
+  }
+
   /** Issues a new temporary password; the user must replace it at next sign-in. */
   async resetPassword(profileId: string) {
     const profile = await this.prisma.profile.findUniqueOrThrow({

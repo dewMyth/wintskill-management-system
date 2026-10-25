@@ -101,6 +101,16 @@ test('admin registers a new student who then signs in with their registration nu
     'MyStudentPass1',
   );
   await expect(studentPage).toHaveURL('/student');
+
+  // The admin deletes the student again and is back on the list.
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  const confirm = page.getByRole('alertdialog');
+  await expect(confirm).toContainText(registrationNo);
+  await confirm.getByRole('button', { name: 'Delete student' }).click();
+  await expect(
+    page.getByText('Nethmi Kaveesha Rajapaksha was deleted'),
+  ).toBeVisible();
+  await expect(page).toHaveURL('/admin/students');
 });
 
 test('a returning student gets a new number for another course and keeps their login', async ({
