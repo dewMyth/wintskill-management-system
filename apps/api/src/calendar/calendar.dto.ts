@@ -2,6 +2,7 @@ import { OmitType, PartialType } from '@nestjs/mapped-types';
 import {
   IsBoolean,
   IsEnum,
+  IsIn,
   IsISO8601,
   IsNotEmpty,
   IsOptional,
@@ -62,9 +63,24 @@ export class CreateSessionDto {
   repeatWeeklyUntil?: string;
 }
 
+/** Which classes of a weekly series a change applies to. */
+export const SCOPES = ['one', 'following'] as const;
+export type Scope = (typeof SCOPES)[number];
+
 export class UpdateSessionDto extends PartialType(
   OmitType(CreateSessionDto, ['batchId', 'repeatWeeklyUntil']),
-) {}
+) {
+  /** `following`: this class and the later ones in its series, moved by the same amount. */
+  @IsOptional()
+  @IsIn(SCOPES)
+  scope?: Scope;
+}
+
+export class SessionScopeQuery {
+  @IsOptional()
+  @IsIn(SCOPES)
+  scope?: Scope;
+}
 
 export class CreateEventDto {
   @IsOptional()

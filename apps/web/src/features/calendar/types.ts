@@ -8,6 +8,8 @@ interface BatchRef {
 
 export interface ClassSession {
   id: string;
+  /** Shared by classes created together with "repeat weekly"; null for a one-off class. */
+  seriesId: string | null;
   batchId: string;
   moduleId: string | null;
   teacherId: string;

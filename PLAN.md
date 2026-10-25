@@ -67,6 +67,7 @@ VITE_API_URL=/api/v1     # same in dev (Vite proxy) and production
 | Register students, add enrollments | ✅ | – | – |
 | Create teacher accounts, reset any user's password | ✅ | – | – |
 | Create class sessions & events, assign teachers | ✅ | – | – |
+| Edit / delete class sessions | ✅ (any) | ✅ (own, cannot reassign) | – |
 | Mark attendance | ✅ (any session) | ✅ (own sessions only) | – |
 | Upload materials & assignments | ✅ | ✅ (edit/delete own uploads only) | – |
 | View materials & assignments | ✅ all | ✅ all | enrolled courses, view-only |
@@ -268,10 +269,10 @@ No website can fully prevent screenshots: the OS, a second phone camera or devto
 
 ### Phase 5 — Calendar & class sessions
 - Admin calendar (FullCalendar): month/week/list views, filter by batch; tap a date to add a class session (batch, module, teacher, time, venue) or an event (exam/holiday/other)
-- "Repeat weekly until <date>" option when creating sessions (creates individual rows, each one editable)
+- "Repeat weekly until <date>" option when creating sessions (creates individual rows linked by `seriesId`; edit or delete "this class" or "this and the following classes", which move by the same time shift)
 - Drag to reschedule (desktop), edit sheet on mobile
 - Teacher clash warning: the same teacher in two overlapping sessions
-- Teacher and student calendars are read-only. A teacher sees their own sessions; a student sees every batch they are actively enrolled in
+- Student calendars are read-only. A teacher sees their own sessions and can edit (not reassign) or delete them; a student sees every batch they are actively enrolled in
 
 **Success criteria**
 - [x] `GET /calendar?from&to&batchId` returns sessions + events in a single call

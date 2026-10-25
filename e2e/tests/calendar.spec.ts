@@ -179,15 +179,26 @@ test('students see only their own intake, read-only', async ({ page }) => {
   );
 });
 
-test('teachers see their classes without their own name', async ({ page }) => {
+test('teachers edit their own classes but cannot hand them over', async ({
+  page,
+}) => {
   await openCalendar(page, 'teacher');
   await expect(page.getByText(/Skin analysis/).first()).toBeVisible();
   await page
     .getByText(/Skin analysis/)
     .first()
     .click();
-  await expect(page.getByRole('dialog')).toContainText('Training salon');
-  await expect(page.getByRole('dialog')).not.toContainText('Nimali Perera');
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByRole('heading', { name: 'Edit class' }),
+  ).toBeVisible();
+  await expect(dialog.getByLabel('Venue (optional)')).toHaveValue(
+    'Training salon',
+  );
+  await expect(dialog.getByLabel('Teacher')).toHaveCount(0);
+  await expect(dialog).not.toContainText('Nimali Perera');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Class updated')).toBeVisible();
 });
 
 test.describe('small phone (360px)', () => {

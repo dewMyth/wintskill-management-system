@@ -16,6 +16,7 @@ import {
   CalendarQuery,
   CreateEventDto,
   CreateSessionDto,
+  SessionScopeQuery,
   UpdateEventDto,
   UpdateSessionDto,
 } from './calendar.dto.js';
@@ -45,18 +46,26 @@ export class CalendarController {
     return this.sessions.create(dto);
   }
 
+  /** Teachers may change and delete their own classes. */
   @Patch('sessions/:id')
+  @Roles('ADMIN', 'TEACHER')
   updateSession(
+    @CurrentUser() user: Profile,
     @Param('id', id) sessionId: string,
     @Body() dto: UpdateSessionDto,
   ) {
-    return this.sessions.update(sessionId, dto);
+    return this.sessions.update(user, sessionId, dto);
   }
 
   @Delete('sessions/:id')
+  @Roles('ADMIN', 'TEACHER')
   @HttpCode(204)
-  removeSession(@Param('id', id) sessionId: string) {
-    return this.sessions.remove(sessionId);
+  removeSession(
+    @CurrentUser() user: Profile,
+    @Param('id', id) sessionId: string,
+    @Query() { scope }: SessionScopeQuery,
+  ) {
+    return this.sessions.remove(user, sessionId, scope);
   }
 
   @Post('events')

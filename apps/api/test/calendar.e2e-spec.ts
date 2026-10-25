@@ -242,6 +242,142 @@ describe('class sessions', () => {
   });
 });
 
+describe('weekly series', () => {
+  /** Four Tuesdays, 3–24 March. */
+  async function newSeries() {
+    const { batchId } = await newBatch();
+    const res = await api(admin)
+      .post(
+        '/sessions',
+        session(batchId, teacher.id, {
+          repeatWeeklyUntil: day(24, '23:59'),
+        }),
+      )
+      .expect(201);
+    return res.body.sessions as { id: string; seriesId: string }[];
+  }
+  const series = (seriesId: string) =>
+    prisma.classSession.findMany({
+      where: { seriesId },
+      orderBy: { startsAt: 'asc' },
+    });
+
+  it('links repeated classes; a one-off class has no series', async () => {
+    const sessions = await newSeries();
+    expect(sessions).toHaveLength(4);
+    expect(new Set(sessions.map((s) => s.seriesId)).size).toBe(1);
+    expect(sessions[0].seriesId).toEqual(expect.any(String));
+    const { batchId } = await newBatch();
+    const single = await api(admin)
+      .post('/sessions', session(batchId, teacher.id))
+      .expect(201);
+    expect(single.body.sessions[0].seriesId).toBeNull();
+  });
+
+  it('edits one class, or it and the following ones by the same shift', async () => {
+    const sessions = await newSeries();
+    const seriesId = sessions[0].seriesId;
+
+    await api(admin)
+      .patch(`/sessions/${sessions[0].id}`, { venue: 'Only first' })
+      .expect(200);
+    // Third class: an hour later from 10:00 to 13:00, new venue, this and the fourth.
+    const res = await api(admin)
+      .patch(`/sessions/${sessions[2].id}`, {
+        scope: 'following',
+        startsAt: day(17, '10:00'),
+        endsAt: day(17, '13:00'),
+        venue: 'Lab 2',
+      })
+      .expect(200);
+    expect(res.body.updated).toBe(2);
+    expect(res.body.session.venue).toBe('Lab 2');
+
+    const after = await series(seriesId);
+    expect(after.map((s) => s.venue)).toEqual([
+      'Only first',
+      'Hall A',
+      'Lab 2',
+      'Lab 2',
+    ]);
+    expect(after.map((s) => s.startsAt.toISOString())).toEqual([
+      new Date(day(3, '09:00')).toISOString(),
+      new Date(day(10, '09:00')).toISOString(),
+      new Date(day(17, '10:00')).toISOString(),
+      new Date(day(24, '10:00')).toISOString(),
+    ]);
+    expect(after[3].endsAt.toISOString()).toBe(
+      new Date(day(24, '13:00')).toISOString(),
+    );
+  });
+
+  it('deletes one class, or it and the following ones', async () => {
+    const sessions = await newSeries();
+    const seriesId = sessions[0].seriesId;
+    await api(admin).delete(`/sessions/${sessions[0].id}`).expect(204);
+    expect(await series(seriesId)).toHaveLength(3);
+    await api(admin)
+      .delete(`/sessions/${sessions[2].id}?scope=following`)
+      .expect(204);
+    expect((await series(seriesId)).map((s) => s.id)).toEqual([sessions[1].id]);
+    await api(admin)
+      .delete(`/sessions/${sessions[1].id}?scope=everything`)
+      .expect(400);
+  });
+});
+
+describe('teachers and their own classes', () => {
+  it("a teacher edits and deletes their own classes, not other teachers'", async () => {
+    const { batchId } = await newBatch();
+    const created = await api(admin)
+      .post(
+        '/sessions',
+        session(batchId, teacher.id, { repeatWeeklyUntil: day(17, '23:59') }),
+      )
+      .expect(201);
+    const [first, second, third] = created.body.sessions as { id: string }[];
+
+    const res = await api(teacher)
+      .patch(`/sessions/${first.id}`, {
+        venue: 'Room 5',
+        notes: 'Bring combs',
+        startsAt: day(3, '10:00'),
+        endsAt: day(3, '12:00'),
+      })
+      .expect(200);
+    expect(res.body.session).toMatchObject({
+      venue: 'Room 5',
+      notes: 'Bring combs',
+      teacher: { id: teacher.id },
+    });
+    const handOver = await api(teacher)
+      .patch(`/sessions/${first.id}`, { teacherId: otherTeacher.id })
+      .expect(403);
+    expect(handOver.body.message).toBe(
+      'Only an admin can give a class to another teacher',
+    );
+    await api(teacher)
+      .patch(`/sessions/${first.id}`, { teacherId: teacher.id })
+      .expect(200);
+
+    const notMine = await api(otherTeacher)
+      .patch(`/sessions/${first.id}`, { venue: 'x' })
+      .expect(403);
+    expect(notMine.body.message).toBe('You can only change your own classes');
+    await api(otherTeacher).delete(`/sessions/${first.id}`).expect(403);
+    await api(student).delete(`/sessions/${first.id}`).expect(403);
+
+    await api(teacher)
+      .delete(`/sessions/${second.id}?scope=following`)
+      .expect(204);
+    expect(
+      await prisma.classSession.count({
+        where: { id: { in: [first.id, second.id, third.id] } },
+      }),
+    ).toBe(1);
+  });
+});
+
 describe('events', () => {
   it('creates academy-wide and intake events', async () => {
     const { batchId } = await newBatch();
@@ -406,7 +542,7 @@ describe('who sees what', () => {
     ).toBe(true);
   });
 
-  it('only admins change the calendar; the range is validated', async () => {
+  it('only admins add to the calendar; the range is validated', async () => {
     const { batchId } = await newBatch();
     await api(teacher)
       .post('/sessions', session(batchId, teacher.id))
